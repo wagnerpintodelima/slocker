@@ -1037,3 +1037,34 @@ class AlarmBarDisparo(models.Model):
         db_table = 'alarm_bar_disparo'        
         
         
+class Espaco(models.Model):    
+    nome = models.CharField(max_length=100)
+    valor_reserva = models.FloatField()
+    regras = models.TextField()   
+
+    class Meta:
+        managed = False
+        db_table = 'espaco'    
+        
+class EspacoItem(models.Model):
+    espaco = models.ForeignKey('Espaco', models.DO_NOTHING, blank=True, null=True, db_column='espaco')        
+    descricao = models.CharField(max_length=150)
+    quantidade = models.IntegerField()    
+
+    class Meta:
+        managed = False
+        db_table = 'espaco_item'    
+        
+class Reserva(models.Model):
+    espaco = models.ForeignKey('Espaco', models.DO_NOTHING, blank=True, null=True, db_column='espaco')        
+    userApp = models.ForeignKey('UserApp', models.DO_NOTHING, blank=True, null=True, db_column='user_app')        
+    data_inicio = models.DateTimeField()
+    data_fim = models.DateTimeField()
+    observacoes = models.TextField()
+    regras = models.TextField()
+    status = models.IntegerField()   # 0: Pendente, 1: Confirmada, 2: Cancelada 
+    created_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'reserva'            
