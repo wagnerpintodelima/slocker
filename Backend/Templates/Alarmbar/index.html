@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Alarmes Bar - Lista{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Alarm Bar</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item active">Alarm Bar</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+  
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      {% if data %}
+      <table class="table datatables">
+        <thead>
+        <tr>
+          <th scope="col">#</th>          
+          <th scope="col">Cliente</th>
+          <th scope="col">uC2Broker</th>
+          <th scope="col">Broker2uC</th>
+          <th scope="col">Grupo</th>
+          <th scope="col">Criado em</th>
+          <th scope="col">Status</th>
+          <th scope="col">Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in data %}
+        <tr>
+          <td>{{ item.id }}</td>          
+          <td>
+            {{ item.automation.client.nome_fantasia }}
+          </td>   
+          <td>{{ item.mqtt_topic_uc_to_broker }}</td>
+          <td>{{ item.mqtt_topic_broker_to_uc }}</td>
+          <td>{{ item.alarm_bar_group_item.descricao }}</td>
+          <td>{{ item.created_at }}</td>
+          <td>
+            {% if item.status %}
+            <i class="bi bi-hand-thumbs-up-fill"></i>
+            {% else %}
+            <i class="bi bi-hand-thumbs-down"></i>
+            {% endif %}
+          </td>
+          <td>
+            <!-- Menu de Ações -->
+            <div class="btn-group">
+              <button type="button" class="btn btn-primary">Opções</button>
+              <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="visually-hidden">Opções</span>
+              </button>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item" href="{% url 'AlarmbarEditView' item.id %}"><i class="bi bi-sliders"></i> Editar</a>
+                </li>                
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <a class="dropdown-item" href="#" @click.once="deleteConfirm('{% url 'AlarmbarDeleteAction' item.id  %}')">
+                    <i class="bi bi-x-circle"></i> Excluir
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </td>
+          {% endfor %}
+        </tr>
+        </tbody>
+      </table>
+      {% else %}
+      <div class="alert alert-danger" role="alert">
+        Não há dados!
+      </div>
+      {% endif %}
+    </div>
+    <div class="col-lg-12">
+      <a href="{% url 'AlarmbarNewView' %}" class="btn btn-primary">
+        <i class="bx bxs-plus-circle"></i> Novo Alarm Bar
+      </a>
+    </div>
+  </div>
+
+
+
+</section>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/Carro/index.js' %}"></script>
+{% endblock %}

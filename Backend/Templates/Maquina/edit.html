@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Máquina - Editar{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Cliente</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Máquina</li>
+      <li class="breadcrumb-item">{{ maquina.get_tipo_display }}</li>
+      <li class="breadcrumb-item active">{{ maquina.modelo }}</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cadastro</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'MaquinaEditAction' maquina.id %}" enctype="multipart/form-data">
+            
+            {% csrf_token %}
+
+            <div class="col-lg-4">
+              <label for="inputNanme10" class="form-label">Modelo (*)</label>
+              <input type="text" class="form-control" id="inputNanme10" placeholder="Modelo" name="modelo" required value="{{ maquina.modelo }}">
+            </div>
+
+            <div class="col-lg-4">
+              <label for="inputNanme5" class="form-label">Tipo (*)</label>
+              <br>
+              <select name="tipo" required class="form-control select2">
+                <option value="0">Selecione</option>
+                {% for item in MAQUINA_TIPO_CHOICES %}
+                <option value="{{ item.0 }}" {% if maquina.tipo == item.0 %}selected{% endif %}>{{ item.1 }}</option>             
+                {% endfor %}   
+              </select>
+            </div>     
+            
+            <div class="col-lg-4">
+              <label for="inputNanme5" class="form-label">Tipo do Pulso (*)</label>
+              <br>
+              <select name="tipo_pulso" required class="form-control select2">
+                <option value="0">Selecione</option>
+                {% for item in MAQUINA_TIPO_PULSO_CHOICES %}
+                <option value="{{ item.0 }}" {% if maquina.tipo_pulso == item.0 %}selected{% endif %}>{{ item.1 }}</option>             
+                {% endfor %}   
+              </select>
+            </div>  
+
+            <div class="col-lg-12">
+              <label for="inputNanme15" class="form-label">Observação</label>
+              <textarea class="form-control" id="inputNanme15" placeholder="Observação" name="observacao" rows="5">{{ maquina.observacao }}</textarea>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Foto</label>
+              <input type="file" class="form-control" id="inputNanme14" placeholder="Foto" name="foto">
+            </div>
+
+            <div class="col-lg-6">
+              <img src="{{ DOMAIN_ASSETS }}/maquina/{{ maquina.foto }}.png" alt="Foto" width="200px">
+            </div>
+
+            <div class="col-lg-12 d-flex justify-content-end">
+              <div class="col-lg-11 col-xs-12">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                
+                <a href="{% url 'MaquinaIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+              </div>
+              <div class="col-lg-1 col-xs-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" {% if maquina.usa_rele %}checked{% endif %} name="status"
+                    value="1">
+                    <label class="form-check-label" for="flexSwitchCheckChecked">Usa relé</label>
+                </div>
+              </div>
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+{% load static %}
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Auten PRO - Smart Locker</title>
+  <meta content="" name="Sistema de controle de recebimentos de entregas">
+  <meta content="" name="correios,delivery,transporte">
+
+  <!-- Favicons -->
+  <link href="{% static 'backend/img/favicon.png' %}" rel="icon">  
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="{% static 'backend/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'backend/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'backend/vendor/boxicons/css/boxicons.min.css' %}" rel="stylesheet">
+  <link href="{% static 'backend/vendor/quill/quill.snow.css' %}" rel="stylesheet">
+  <link href="{% static 'backend/vendor/quill/quill.bubble.css' %}" rel="stylesheet">
+  <link href="{% static 'backend/vendor/remixicon/remixicon.css' %}" rel="stylesheet">
+  <link href="{% static 'backend/vendor/simple-datatables/style.css' %}" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'backend/node_modules/jquery-toast-plugin/src/jquery.toast.css' %}">
+
+  <!-- Template Main CSS File -->
+  <link href="{% static 'backend/css/style.css' %}" rel="stylesheet">
+
+  <!-- =======================================================
+  * Template Name: NiceAdmin
+  * Updated: Aug 30 2023 with Bootstrap v5.3.1
+  * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
+  * Author: BootstrapMade.com
+  * License: https://bootstrapmade.com/license/
+  ======================================================== -->
+</head>
+
+<body>
+
+<main>
+  <div class="container">
+
+    <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
+
+            <div class="card mb-3">
+
+              <div class="card-body">
+
+                <div class="pt-4 pb-2 d-flex justify-content-center">
+                  <a href="index.html" class="logo d-flex align-items-center w-auto">
+                    <img src="{% static 'backend/img/logo.png' %}" alt="">
+                  </a>
+                </div>
+
+                {% if request.GET.pega_ladrao == 'true' %}
+                  <div class="alert alert-danger">
+                    <p>🚨 Alerta: Tentativa de login bloqueada!</p>
+                  </div>
+                {% endif %}
+                
+                <form class="row g-3 needs-validation" novalidate method="POST" action="{% url 'loginAction' %}" id="form-login">
+                  {% csrf_token %}
+                  <div class="col-12">
+                    <label for="yourUsername" class="form-label">Usuário</label>
+                    <div class="input-group has-validation">
+                      <span class="input-group-text" id="inputGroupPrepend">@</span>
+                      <input type="text" name="username" class="form-control" required id="yourUsername" placeholder="E-mail">
+                      <div class="invalid-feedback">Informe seu e-mail!</div>
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <label for="yourPassword" class="form-label">Senha</label>
+                    <input type="password" name="password" class="form-control" required id="yourPassword" placeholder="Senha">
+                    <div class="invalid-feedback">Informe sua senha!</div>
+                  </div>
+
+                  <div class="col-12">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="remember" value="true" id="rememberMe">
+                      <label class="form-check-label" for="rememberMe">Lembrar-me</label>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <button class="btn btn-primary w-100" type="submit">Entrar</button>
+                  </div>
+                  <div class="col-12">
+                    <p class="small mb-0">Esqueceu sua senha? <a href="#">Solicitar nova</a></p>
+                  </div>
+                </form>
+
+              </div>
+            </div>
+
+            <div class="credits">
+              Development by <a href="https://bootstrapmade.com/">Auten PRO</a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+</main><!-- End #main -->
+
+<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+<script src="{% static 'backend/node_modules/jquery/dist/jquery.min.js' %}"></script>
+<script src="{% static 'backend/node_modules/jquery-toast-plugin/src/jquery.toast.js' %}"></script>
+<script type="text/javascript">
+		$(function(){
+
+			let time = 3E3;
+
+      {% if request.GET.pega_ladrao == 'true' %}
+      setTimeout(function(){
+        $.toast({
+          heading: 'TOMAAAAA',
+          text: 'otárioooo',
+          showHideTransition: 'slide',
+          icon: 'success',
+          hideAfter: time,
+          position: 'top-right', // bottom-left or bottom-right or bottom-center or top-left or top-right or top-center or mid-center or an object representing the left, right, top, bottom values
+        });
+      }, 2e3)
+      setTimeout(function(){
+        window.location.href = 'https://www.redtube.com.br/190953181'; // Isso é para quem merece
+      }, 3e3)      
+      {% endif %}
+
+			{% if messages %}
+			{% for message in messages %}
+				{% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+					$.toast({
+						heading: 'Atenção',
+						text: '{{ message }}',
+						showHideTransition: 'slide',
+						icon: 'success',
+						hideAfter: time,
+						position: 'top-right', // bottom-left or bottom-right or bottom-center or top-left or top-right or top-center or mid-center or an object representing the left, right, top, bottom values
+					});
+				{% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+					$.toast({
+						heading: 'Atenção',
+						text: '{{ message }}',
+						showHideTransition: 'slide',
+						icon: 'error',
+						hideAfter: time,
+						position: 'top-right', // bottom-left or bottom-right or bottom-center or top-left or top-right or top-center or mid-center or an object representing the left, right, top, bottom values
+					});
+				{% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+					$.toast({
+						heading: 'Atenção',
+						text: '{{ message }}',
+						showHideTransition: 'slide',
+						icon: 'warning',
+						hideAfter: time,
+						position: 'top-right', // bottom-left or bottom-right or bottom-center or top-left or top-right or top-center or mid-center or an object representing the left, right, top, bottom values
+					});
+
+					localStorage.removeItem('username');
+					localStorage.removeItem('password');
+
+					$.toast({
+						heading: 'Atenção',
+						text: 'Login automático desativado com sucesso!',
+						showHideTransition: 'slide',
+						icon: 'success',
+						hideAfter: 8e3,
+						position: 'top-right', // bottom-left or bottom-right or bottom-center or top-left or top-right or top-center or mid-center or an object representing the left, right, top, bottom values
+					});
+
+				{% endif %}
+			{% endfor %}
+			{% endif %}
+
+
+        $(document).on('submit', '#form-login', function(e){
+          e.preventDefault()
+          let rememberMe = $('#rememberMe').prop('checked')
+          let user = $('#yourUsername').val()
+          let pswd = $('#yourPassword').val()
+
+          if (rememberMe) {
+            localStorage.setItem('rememberMe', 'true');
+            localStorage.setItem('user', user);
+            localStorage.setItem('pswd', pswd);
+          } else {
+            localStorage.removeItem('rememberMe');
+            localStorage.removeItem('user');
+            localStorage.removeItem('pswd');
+          }
+    
+          console.log({ rememberMe, user, pswd });    
+          
+          this.submit()
+          
+        })
+
+        // Ao carregar a página, preenche os campos se rememberMe estiver ativo
+        const remember = localStorage.getItem('rememberMe') === 'true';
+        if (remember) {
+          $('#rememberMe').prop('checked', true);
+          $('#yourUsername').val(localStorage.getItem('user') || '');
+          $('#yourPassword').val(localStorage.getItem('pswd') || '');
+        }
+
+		});
+	</script>
+
+</body>
+
+</html>

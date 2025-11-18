@@ -1,0 +1,719 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Página Inicial - Dashboards{% endblock %}
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Dashboard</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+      <li class="breadcrumb-item active">Dashboard</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+  <div class="row">
+
+    <!-- V2, Sensores, Gps e Telas -->
+    <div class="{% if posvendas_atrasadas %}col-lg-6{% else %}col-lg-12{% endif %}">
+      <div class="row">
+
+        <!-- V2 Centrais -->
+        <div class="col-xxl-6 col-md-6">
+          <div class="card info-card Vendas-card">
+
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+
+                <li><a class="dropdown-item" href="#">Hoje</a></li>
+                <li><a class="dropdown-item" href="#">Neste mês</a></li>
+                <li><a class="dropdown-item" href="#">Neste ano</a></li>
+              </ul>
+            </div>
+
+            <div class="card-body">
+              <h5 class="card-title">Central V2 <span>/ Reserva</span></h5>
+
+              <div class="d-flex align-items-center">
+                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                  <i class="bi bi-pc-display"></i>
+                </div>
+                <div class="ps-3">
+                  <h6>{{ v2_in_store }} / {{ v2_reserva_tecnico }}</h6>
+                  <span class="text-success small pt-1 fw-bold">no</span> <span
+                    class="text-muted small pt-2 ps-1">estoque</span>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- End Vendas Card -->
+
+        <!-- Telas -->
+        <div class="col-xxl-6 col-md-6">
+          <div class="card info-card revenue-card">
+
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+
+                <li><a class="dropdown-item" href="#">Hoje</a></li>
+                <li><a class="dropdown-item" href="#">Neste mês</a></li>
+                <li><a class="dropdown-item" href="#">Neste ano</a></li>
+              </ul>
+            </div>
+
+            <div class="card-body">
+              <h5 class="card-title">Telas <span> / Reserva</span></h5>
+
+              <div class="d-flex align-items-center">
+                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                  <i class="bi bi-display"></i>
+                </div>
+                <div class="ps-3">
+                  <h6>{{ tela_in_store }} / {{ tela_reserva_tecnico }}</h6>
+                  <span class="text-success small pt-1 fw-bold">no</span> <span
+                    class="text-muted small pt-2 ps-1">estoque</span>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- End Revenue Card -->
+
+        <!-- Sensores -->
+        <div class="col-xxl-6 col-xl-12">
+
+          <div class="card info-card customers-card">
+
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+
+                <li><a class="dropdown-item" href="#">Hoje</a></li>
+                <li><a class="dropdown-item" href="#">Neste mês</a></li>
+                <li><a class="dropdown-item" href="#">Neste ano</a></li>
+              </ul>
+            </div>
+
+            <div class="card-body">
+              <h5 class="card-title">Sensores <span>/ Reserva</span></h5>
+
+              <div class="d-flex align-items-center">
+                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                  <i class="bi bi-broadcast"></i>
+                </div>
+                <div class="ps-3">
+                  <h6>{{ sensor_in_store }} / {{ sensores_reserva_tecnico }}</h6>
+                  <span class="text-danger small pt-1 fw-bold">no</span> <span
+                    class="text-muted small pt-2 ps-1">estoque</span>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div><!-- End Customers Card -->
+
+        <!-- Atron GPS -->
+        <div class="col-xxl-6 col-xl-12">
+
+          <div class="card info-card customers-card">
+
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+
+                <li><a class="dropdown-item" href="#">Hoje</a></li>
+                <li><a class="dropdown-item" href="#">Neste mês</a></li>
+                <li><a class="dropdown-item" href="#">Neste ano</a></li>
+              </ul>
+            </div>
+
+            <div class="card-body">
+              <h5 class="card-title">Atron GPS <span>/ Reserva</span></h5>
+
+              <div class="d-flex align-items-center">
+                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                  <i class="bi bi-geo-alt"></i>
+                </div>
+                <div class="ps-3">
+                  <h6>{{ gps_in_store }} / {{ 0 }}</h6>
+                  <span class="text-warning small pt-1 fw-bold">no</span> <span
+                    class="text-muted small pt-2 ps-1">estoque</span>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div><!-- End Customers Card -->
+
+        {% comment %} <!-- Reports -->
+        <div class="col-12">
+          <div class="card">
+
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+
+                <li><a class="dropdown-item" href="#">Hoje</a></li>
+                <li><a class="dropdown-item" href="#">Neste mês</a></li>
+                <li><a class="dropdown-item" href="#">Neste ano</a></li>
+              </ul>
+            </div>
+
+            <div class="card-body">
+              <h5 class="card-title">Reports <span>/Hoje</span></h5>
+
+              <!-- Line Chart -->
+              <div id="reportsChart"></div>
+
+              <script>
+                document.addEventListener("DOMContentLoaded", () => {
+                  new ApexCharts(document.querySelector("#reportsChart"), {
+                    series: [{
+                      name: 'Vendas',
+                      data: [31, 40, 28, 51, 42, 82, 56],
+                    }, {
+                      name: 'Revenue',
+                      data: [11, 32, 45, 32, 34, 52, 41]
+                    }, {
+                      name: 'Customers',
+                      data: [15, 11, 32, 18, 9, 24, 11]
+                    }],
+                    chart: {
+                      height: 350,
+                      type: 'area',
+                      toolbar: {
+                        show: false
+                      },
+                    },
+                    markers: {
+                      size: 4
+                    },
+                    colors: ['#4154f1', '#2eca6a', '#ff771d'],
+                    fill: {
+                      type: "gradient",
+                      gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.3,
+                        opacityTo: 0.4,
+                        stops: [0, 90, 100]
+                      }
+                    },
+                    dataLabels: {
+                      enabled: false
+                    },
+                    stroke: {
+                      curve: 'smooth',
+                      width: 2
+                    },
+                    xaxis: {
+                      type: 'datetime',
+                      categories: ["2018-09-19T00:00:00.000Z", "2018-09-19T01:30:00.000Z", "2018-09-19T02:30:00.000Z", "2018-09-19T03:30:00.000Z", "2018-09-19T04:30:00.000Z", "2018-09-19T05:30:00.000Z", "2018-09-19T06:30:00.000Z"]
+                    },
+                    tooltip: {
+                      x: {
+                        format: 'dd/MM/yy HH:mm'
+                      },
+                    }
+                  }).render();
+                });
+              </script>
+              <!-- End Line Chart -->
+
+            </div>
+
+          </div>
+        </div><!-- End Reports -->
+
+        <!-- Recent Vendas -->
+        <div class="col-12">
+          <div class="card recent-Vendas overflow-auto">
+
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+
+                <li><a class="dropdown-item" href="#">Hoje</a></li>
+                <li><a class="dropdown-item" href="#">Neste mês</a></li>
+                <li><a class="dropdown-item" href="#">Neste ano</a></li>
+              </ul>
+            </div>
+
+            <div class="card-body">
+              <h5 class="card-title">Recent Vendas <span>| Hoje</span></h5>
+
+              <table class="table table-borderless datatable">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Customer</th>
+                    <th scope="col">Product</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row"><a href="#">#2457</a></th>
+                    <td>Brandon Jacob</td>
+                    <td><a href="#" class="text-primary">At praesentium minu</a></td>
+                    <td>$64</td>
+                    <td><span class="badge bg-success">Approved</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><a href="#">#2147</a></th>
+                    <td>Bridie Kessler</td>
+                    <td><a href="#" class="text-primary">Blanditiis dolor omnis similique</a></td>
+                    <td>$47</td>
+                    <td><span class="badge bg-warning">Pending</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><a href="#">#2049</a></th>
+                    <td>Ashleigh Langosh</td>
+                    <td><a href="#" class="text-primary">At recusandae consectetur</a></td>
+                    <td>$147</td>
+                    <td><span class="badge bg-success">Approved</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><a href="#">#2644</a></th>
+                    <td>Angus Grady</td>
+                    <td><a href="#" class="text-primar">Ut voluptatem id earum et</a></td>
+                    <td>$67</td>
+                    <td><span class="badge bg-danger">Rejected</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><a href="#">#2644</a></th>
+                    <td>Raheem Lehner</td>
+                    <td><a href="#" class="text-primary">Sunt similique distinctio</a></td>
+                    <td>$165</td>
+                    <td><span class="badge bg-success">Approved</span></td>
+                  </tr>
+                </tbody>
+              </table>
+
+            </div>
+
+          </div>
+        </div><!-- End Recent Vendas -->
+
+        <!-- Top Selling -->
+        <div class="col-12">
+          <div class="card top-selling overflow-auto">
+
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+
+                <li><a class="dropdown-item" href="#">Hoje</a></li>
+                <li><a class="dropdown-item" href="#">Neste mês</a></li>
+                <li><a class="dropdown-item" href="#">Neste ano</a></li>
+              </ul>
+            </div>
+
+            <div class="card-body pb-0">
+              <h5 class="card-title">Top Selling <span>| Hoje</span></h5>
+
+              <table class="table table-borderless">
+                <thead>
+                  <tr>
+                    <th scope="col">Preview</th>
+                    <th scope="col">Product</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Sold</th>
+                    <th scope="col">Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row"><a href="#"><img src="{% static 'backend/img/product-1.jpg' %}" alt=""></a></th>
+                    <td><a href="#" class="text-primary fw-bold">Ut inventore ipsa voluptas nulla</a></td>
+                    <td>$64</td>
+                    <td class="fw-bold">124</td>
+                    <td>$5,828</td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><a href="#"><img src="{% static 'backend/img/product-2.jpg' %}" alt=""></a></th>
+                    <td><a href="#" class="text-primary fw-bold">Exercitationem similique doloremque</a></td>
+                    <td>$46</td>
+                    <td class="fw-bold">98</td>
+                    <td>$4,508</td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><a href="#"><img src="{% static 'backend/img/product-3.jpg' %}" alt=""></a></th>
+                    <td><a href="#" class="text-primary fw-bold">Doloribus nisi exercitationem</a></td>
+                    <td>$59</td>
+                    <td class="fw-bold">74</td>
+                    <td>$4,366</td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><a href="#"><img src="{% static 'backend/img/product-4.jpg' %}" alt=""></a></th>
+                    <td><a href="#" class="text-primary fw-bold">Officiis quaerat sint rerum error</a></td>
+                    <td>$32</td>
+                    <td class="fw-bold">63</td>
+                    <td>$2,016</td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><a href="#"><img src="{% static 'backend/img/product-5.jpg' %}" alt=""></a></th>
+                    <td><a href="#" class="text-primary fw-bold">Sit unde debitis delectus repellendus</a></td>
+                    <td>$79</td>
+                    <td class="fw-bold">41</td>
+                    <td>$3,239</td>
+                  </tr>
+                </tbody>
+              </table>
+
+            </div>
+
+          </div>
+        </div><!-- End Top Selling --> {% endcomment %}
+
+      </div>
+    </div><!-- End Left side columns -->
+
+     <!-- Pós Vendas -->
+    {% if posvendas_atrasadas %}
+    <div class="col-lg-6">
+
+      <!-- Recent Activity -->
+      <div class="card">
+        <div class="filter">
+          <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+            <li class="dropdown-header text-start">
+              <h6>Filter</h6>
+            </li>
+
+            <li><a class="dropdown-item" href="#">Hoje</a></li>
+            <li><a class="dropdown-item" href="#">Neste mês</a></li>
+            <li><a class="dropdown-item" href="#">Neste ano</a></li>
+          </ul>
+        </div>
+
+        {% if posvendas_atrasadas %}
+        <div class="card-body">
+          <h5 class="card-title">Controle de Pós Vendas <span>| Hoje</span></h5>
+
+          <div class="list-group">
+
+            {% for pv in posvendas_atrasadas %}
+            <a href="{% url 'PosVendaIndexView' %}" class="list-group-item list-group-item-action {% if forloop.first %}active{% endif %}" aria-current="true">
+              <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ pv.viagem_instalacao.cliente_auten.nome }}</h5>
+                <small>{{ pv.data_programada_ligacao | timesince }}</small>
+              </div>
+              <p class="mb-1">Era para ter ligado {{ pv.data_programada_ligacao }}.</p>
+              <small>{{ pv.viagem_instalacao.cliente_auten.telefone }}</small>
+            </a>
+            {% endfor %}
+
+          </div>          
+        </div>
+        {% endif %}
+      </div><!-- End Recent Activity -->
+
+    </div><!-- End Right side columns -->
+    {% endif %}
+
+    <!-- Logs -->
+    <div class="col-lg-12">
+
+      <!-- Recent Activity -->
+      <div class="card">
+        <div class="filter">
+          <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+            <li class="dropdown-header text-start">
+              <h6>Filter</h6>
+            </li>
+
+            <li><a class="dropdown-item" href="#">Hoje</a></li>
+            <li><a class="dropdown-item" href="#">Neste mês</a></li>
+            <li><a class="dropdown-item" href="#">Neste ano</a></li>
+          </ul>
+        </div>
+
+        <div class="card-body">
+          <h5 class="card-title">Atividades Recentes <span>| Hoje</span></h5>
+
+
+          {% for log in logs %}
+          
+          <div class="activity">            
+            <div class="activity-item d-flex">
+              <div class="activite-label">{{ log.created_at|timesince }} atrás</div>
+              {% if log.level == 0 %}
+              <i class='bi bi-circle-fill activity-badge text-danger align-self-start'></i>
+              {% elif log.level == 1 %}
+              <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
+              {% elif log.level == 2 %}
+              <i class='bi bi-circle-fill activity-badge text-info align-self-start'></i>
+              {% else %}
+              <i class='bi bi-circle-fill activity-badge text-warning align-self-start'></i>
+              {% endif %}
+              <div class="activity-content">
+                {{ log.descricao | safe }}
+              </div>
+            </div><!-- End activity item-->            
+          </div>
+          
+          {% endfor %}
+
+          
+
+        </div>
+      </div><!-- End Recent Activity -->
+
+      {% comment %} <!-- Budget Report -->
+      <div class="card">
+        <div class="filter">
+          <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+            <li class="dropdown-header text-start">
+              <h6>Filter</h6>
+            </li>
+
+            <li><a class="dropdown-item" href="#">Hoje</a></li>
+            <li><a class="dropdown-item" href="#">Neste mês</a></li>
+            <li><a class="dropdown-item" href="#">Neste ano</a></li>
+          </ul>
+        </div>
+
+        <div class="card-body pb-0">
+          <h5 class="card-title">Budget Report <span>| Neste mês</span></h5>
+
+          <div id="budgetChart" style="min-height: 400px;" class="echart"></div>
+
+          <script>
+            document.addEventListener("DOMContentLoaded", () => {
+              var budgetChart = echarts.init(document.querySelector("#budgetChart")).setOption({
+                legend: {
+                  data: ['Allocated Budget', 'Actual Spending']
+                },
+                radar: {
+                  // shape: 'circle',
+                  indicator: [{
+                    name: 'Vendas',
+                    max: 6500
+                  },
+                  {
+                    name: 'Administration',
+                    max: 16000
+                  },
+                  {
+                    name: 'Information Technology',
+                    max: 30000
+                  },
+                  {
+                    name: 'Customer Support',
+                    max: 38000
+                  },
+                  {
+                    name: 'Development',
+                    max: 52000
+                  },
+                  {
+                    name: 'Marketing',
+                    max: 25000
+                  }
+                  ]
+                },
+                series: [{
+                  name: 'Budget vs spending',
+                  type: 'radar',
+                  data: [{
+                    value: [4200, 3000, 20000, 35000, 50000, 18000],
+                    name: 'Allocated Budget'
+                  },
+                  {
+                    value: [5000, 14000, 28000, 26000, 42000, 21000],
+                    name: 'Actual Spending'
+                  }
+                  ]
+                }]
+              });
+            });
+          </script>
+
+        </div>
+      </div><!-- End Budget Report --> {% endcomment %}
+
+      {% comment %} <!-- Website Traffic -->
+      <div class="card">
+        <div class="filter">
+          <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+            <li class="dropdown-header text-start">
+              <h6>Filter</h6>
+            </li>
+
+            <li><a class="dropdown-item" href="#">Hoje</a></li>
+            <li><a class="dropdown-item" href="#">Neste mês</a></li>
+            <li><a class="dropdown-item" href="#">Neste ano</a></li>
+          </ul>
+        </div>
+
+        <div class="card-body pb-0">
+          <h5 class="card-title">Website Traffic <span>| Hoje</span></h5>
+
+          <div id="trafficChart" style="min-height: 400px;" class="echart"></div>
+
+          <script>
+            document.addEventListener("DOMContentLoaded", () => {
+              echarts.init(document.querySelector("#trafficChart")).setOption({
+                tooltip: {
+                  trigger: 'item'
+                },
+                legend: {
+                  top: '5%',
+                  left: 'center'
+                },
+                series: [{
+                  name: 'Access From',
+                  type: 'pie',
+                  radius: ['40%', '70%'],
+                  avoidLabelOverlap: false,
+                  label: {
+                    show: false,
+                    position: 'center'
+                  },
+                  emphasis: {
+                    label: {
+                      show: true,
+                      fontSize: '18',
+                      fontWeight: 'bold'
+                    }
+                  },
+                  labelLine: {
+                    show: false
+                  },
+                  data: [{
+                    value: 1048,
+                    name: 'Search Engine'
+                  },
+                  {
+                    value: 735,
+                    name: 'Direct'
+                  },
+                  {
+                    value: 580,
+                    name: 'Email'
+                  },
+                  {
+                    value: 484,
+                    name: 'Union Ads'
+                  },
+                  {
+                    value: 300,
+                    name: 'Video Ads'
+                  }
+                  ]
+                }]
+              });
+            });
+          </script>
+
+        </div>
+      </div><!-- End Website Traffic -->
+
+      <!-- News & Updates Traffic -->
+      <div class="card">
+        <div class="filter">
+          <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+            <li class="dropdown-header text-start">
+              <h6>Filter</h6>
+            </li>
+
+            <li><a class="dropdown-item" href="#">Hoje</a></li>
+            <li><a class="dropdown-item" href="#">Neste mês</a></li>
+            <li><a class="dropdown-item" href="#">Neste ano</a></li>
+          </ul>
+        </div>
+
+        <div class="card-body pb-0">
+          <h5 class="card-title">News &amp; Updates <span>| Hoje</span></h5>
+
+          <div class="news">
+            <div class="post-item clearfix">
+              <img src="{% static 'backend/img/news-1.jpg' %}" alt="">
+              <h4><a href="#">Nihil blanditiis at in nihil autem</a></h4>
+              <p>Sit recusandae non aspernatur laboriosam. Quia enim eligendi sed ut harum...</p>
+            </div>
+
+            <div class="post-item clearfix">
+              <img src="{% static 'backend/img/news-2.jpg' %}" alt="">
+              <h4><a href="#">Quidem autem et impedit</a></h4>
+              <p>Illo nemo neque maiores vitae officiis cum eum turos elan dries werona nande...</p>
+            </div>
+
+            <div class="post-item clearfix">
+              <img src="{% static 'backend/img/news-3.jpg' %}" alt="">
+              <h4><a href="#">Id quia et et ut maxime similique occaecati ut</a></h4>
+              <p>Fugiat voluptas vero eaque accusantium eos. Consequuntur sed ipsam et totam...</p>
+            </div>
+
+            <div class="post-item clearfix">
+              <img src="{% static 'backend/img/news-4.jpg' %}" alt="">
+              <h4><a href="#">Laborum corporis quo dara net para</a></h4>
+              <p>Qui enim quia optio. Eligendi aut asperiores enim repellendusvel rerum cuder...</p>
+            </div>
+
+            <div class="post-item clearfix">
+              <img src="{% static 'backend/img/news-5.jpg' %}" alt="">
+              <h4><a href="#">Et dolores corrupti quae illo quod dolor</a></h4>
+              <p>Odit ut eveniet modi reiciendis. Atque cupiditate libero beatae dignissimos eius...</p>
+            </div>
+
+          </div><!-- End sidebar recent posts-->
+
+        </div>
+      </div><!-- End News & Updates --> {% endcomment %}
+
+    </div><!-- End Right side columns -->
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/vendor/apexcharts/apexcharts.min.js' %}"></script>
+<script src="{% static 'backend/vendor/echarts/echarts.min.js' %}"></script>
+<script src="{% static 'backend/vendor/simple-datatables/simple-datatables.js' %}"></script>
+<script src="{% static 'backend/vendor/quill/quill.min.js' %}"></script>
+
+
+
+{% endblock %}

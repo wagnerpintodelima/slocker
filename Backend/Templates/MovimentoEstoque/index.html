@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Movimento Estoque - Lista{% endblock %}
+
+{% block css %}
+<style>
+  .entrada-estoque{
+    background-color: green;
+    color: white;
+  }
+
+  .saida-estoque{
+    background-color: red;
+    color: white;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Movimento Estoque</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item active">Movimento Estoque</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+  
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      {% if data %}
+      <table class="table datatable">
+        <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Foto</th>
+          <th scope="col">Produto</th>
+          <th scope="col">Tipo</th>
+          <th scope="col">Quantidade</th>
+          <th scope="col">Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in data %}
+        <tr>
+          <td>{{ item.id }}
+          <td>            
+            <img src="{{ DOMAIN_ASSETS }}/produto/{{ item.produto.foto }}.png" alt="Foto" width="200px" loading="lazy">
+          </td>   
+          <td>{{ item.produto.descricao }}</td>
+          <td>{{ item.get_tipo_display }}</td>          
+          <td>{{ item.quantidade }}</td>
+          <td>
+            <!-- Menu de Ações -->            
+            <a class="btn btn-danger" href="{% url 'MovimentoEstoqueDeleteView' item.id %}"><i class="bx bxs-trash"></i> Excluir</a>                          
+          </td>
+          {% endfor %}
+        </tr>
+        </tbody>
+      </table>
+      {% else %}
+      <div class="alert alert-danger" role="alert">
+        Não há dados!
+      </div>
+      {% endif %}
+    </div>
+    <div class="col-lg-12">
+      <a href="{% url 'MovimentoEstoqueNewView' %}" class="btn btn-primary">
+        <i class="bx bxs-plus-circle"></i> Ajuste de Estoque
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/MovimentoEstoque/index.js' %}"></script>
+{% endblock %}

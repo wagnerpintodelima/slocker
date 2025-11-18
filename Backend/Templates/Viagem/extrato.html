@@ -1,0 +1,336 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Viagem Extrato - Auten PRO{% endblock %}
+
+{% block css %}
+<link href="https://unpkg.com/gijgo@1.9.14/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+
+<style>
+  @media print {
+    .print-area {
+        display: block;  /* Garante que o conteúdo seja exibido */
+    }
+  
+    body * {
+      visibility: hidden; /* Oculta todo o restante do site */
+    }
+    
+    .print-area, .print-area * {
+        visibility: visible; /* Apenas a área selecionada será visível */
+    }
+  
+    .print-area {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+    }
+  }
+</style>
+
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle" id="app">
+  <h1>Viagem Extrato</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Viagem</li>      
+      <li class="breadcrumb-item active">Dados da viagem...</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard print-area" id="app">
+
+  <div class="row">
+    <h5>Dados da viagem</h5>
+  </div>
+
+  <!-- Cabeçalho -->
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">          
+
+          <div class="row mt-4">
+
+              <div class="col-6">
+                <div class="mb-3 row">
+                  <label class="col-sm-4 col-form-label">Técnico</label>
+                  <div class="col-sm-8">
+                    <input type="text" class="form-control" disabled value="{{ viagem.tecnico.nome }}">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <div class="mb-3 row">
+                  <label class="col-sm-4 col-form-label">Veículo</label>
+                  <div class="col-sm-8">
+                    <input type="text" class="form-control" disabled value="{{ viagem.carro.modelo }} - Placa {{ viagem.carro.placa }}">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <div class="mb-3 row">
+                  <label class="col-sm-4 col-form-label">Data e Hora de Saída</label>
+                  <div class="col-sm-8">
+                    <input type="text" class="form-control" disabled value="{{ viagem.data_saida_prevista }}">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <div class="mb-3 row">
+                  <label class="col-sm-4 col-form-label">Data e Hora de Chegada</label>
+                  <div class="col-sm-8">
+                    <input type="text" class="form-control" disabled value="{{ viagem.data_chegada_prevista }}">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <div class="mb-3 row">
+                  <label class="col-sm-4 col-form-label">Quilômetragem - Ida e Volta</label>
+                  <div class="col-sm-8">
+                    <input type="text" class="form-control" disabled value="{{ viagem.km_previsto }}">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <div class="mb-3 row">
+                  <label class="col-sm-4 col-form-label">Quantidade de clientes para visitar</label>
+                  <div class="col-sm-8">
+                    <input type="text" class="form-control" disabled value="{{ viagemInstalacoesCount }}">
+                  </div>
+                </div>
+              </div>
+
+
+          </div> <!-- Fim ROW -->                    
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detalhes instalações por cliente -->
+  <div class="row">
+
+    {% for item in dadosPorCliente %}
+    <div class="col-lg-12">
+      <div class="card">
+
+        <div class="card-title ms-3"><h4>{{ item.nome }}</h4></div>
+
+
+        <div class="card-body">          
+
+          <div class="row mt-4">
+
+              <div class="col-12">
+                <div class="mb-3 row">
+                  <label class="col-sm-2 col-form-label">Cidade</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" disabled value="{{ item.cidade }}">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="mb-3 row">
+                  <label class="col-sm-2 col-form-label">Endereço</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" disabled value="{{ item.endereco }}">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <div class="mb-3 row">
+                  <label class="col-sm-4 col-form-label">Telefone</label>
+                  <div class="col-sm-8">
+                    <input type="text" class="form-control" disabled value="{{ item.telefone }}">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <div class="mb-3 row">
+                  <label class="col-sm-4 col-form-label">Modelo da Máquina</label>
+                  <div class="col-sm-8">
+                    <input type="text" class="form-control" disabled value="{{ item.maquina_modelo }}">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="mb-3 row">
+                  <label class="col-sm-2 col-form-label">Tipo da instalação</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" disabled value="{{ item.tipo_instalacao }}">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="mb-3 row">
+                  <label class="col-sm-2 col-form-label">Ordem de Serviço</label>
+                  <div class="col-sm-10">
+                    <textarea rows="10" disabled class="form-control">{{ item.job }}</textarea>
+                  </div>
+                </div>
+              </div>
+
+              <h4>Dados do cliente (Instalação Código: {{ item.viagem_instalacao_id }})</h4>
+              <table class="table table-bordered table-condensed">
+                <thead>
+                  <tr>
+                    <td><b>Descrição</b></td>
+                    <td><b>É reserva</b></td>                    
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {% for sub in item.itens %}
+                  <tr>
+                    <td>
+                      {% if sub.v2 %}
+                        <b>V2</b> - {{ sub.v2 }}
+                      {% elif sub.tela %}
+                        <b>Tela</b> - {{ sub.tela }}
+                      {% elif sub.sensor %}
+                        <b>Sensor</b> - {{ sub.sensor }}
+                      {% elif sub.outro %}
+                        {{ sub.outro }}
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if sub.is_reserva %}
+                        Sim!
+                      {% else %}
+                        Não
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+
+              </table>
+
+              <hr class="mt-4">
+
+              {% if item.tipo_instalacao_id == 0 %}
+              <h4>Calibração recomendada</h4>
+
+              <table class="table table-bordered table-condensed">
+                <tr class="text-center">
+                  <td colspan="4"><b>GERAL</b></td>                  
+                </tr>
+                <tr>
+                  <td>Modo Padrão: 2</td>
+                  <td>Altura da Barra: 140</td>
+                  <td>Altura Quadro: 170</td>
+                  <td>Modo Operação ZC: Concorrente</td>
+                </tr>
+
+                <tr>
+                  <td>Subir Direto Interno: 40</td>
+                  <td>Subir Direto Externo: 75</td>
+                  <td>Modo Operação: Concorrente</td>
+                  <td>Tempo Espera ZC: 6500</td>
+                </tr>                                
+
+                <tr>
+                  <td>Planar: Não</td>
+                  <td>Sensor Interno Habilitado: Sim</td>
+                  <td>Porcentagem Compensar: 50%</td>
+                  <td>Yaw: 30</td>
+                </tr>
+
+                <tr>
+                  <td>Pitch Min: -30</td>
+                  <td>Pitch Max: +30</td>
+                  <td>Roll Min: -30</td>
+                  <td>Roll Max: +30</td>
+                </tr>
+
+                <tr>
+                  <td colspan="2">Amostras Interno: 4</td>
+                  <td colspan="2">Amostras Externo: 4</td>                    
+                </tr>
+                
+
+                <tr class="text-center">
+                  <td colspan="4"><b>BARRAS - PULSO</b></td>                  
+                </tr>
+
+                <tr>
+                  <td>Pulso Subida: 500</td>
+                  <td>Pulso Descida: 1000</td>
+                  <td>Pulso Mín Subida: 25%</td>
+                  <td>Pulso Mín Descida: 15%</td>
+                </tr>                
+
+                <tr>
+                  <td>Pulso Máx Subida: 80%</td>
+                  <td>Pulso Máx Descida: 30%</td>
+                  <td>Compensar(-): Não</td>
+                  <td>Compensar(-): 10</td>
+                </tr>                
+
+                <tr>
+                  <td colspan="2">Compensar(+): Sim</td>
+                  <td colspan="2">Compensar(+): 10</td>
+                </tr>
+
+                <tr class="text-center">
+                  <td colspan="4"><b>BARRAS - MARGENS</b></td>                  
+                </tr>
+
+                <tr>
+                  <td>Superior: 60</td>
+                  <td>Inferior: 10</td>
+                  <td>Inferior Interno: 60</td>
+                  <td>Tempo Espera: 2000</td>
+                </tr>                
+
+              </table>
+              {% endif %}
+
+          </div> <!-- Fim ROW -->                    
+
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+
+  <button onclick="window.print()" class="float" data-bs-toggle="tooltip" data-bs-placement="top" title="imprimir">
+    <i class="bi bi-printer"></i>
+  </button>       
+
+</section>
+{% endblock %}
+
+{% block js %}
+<script src="https://unpkg.com/gijgo@1.9.14/js/gijgo.min.js" type="text/javascript"></script>
+<script>
+  $('#inputNanme11').datetimepicker({
+    footer: true,
+    modal: true,
+    format: 'dd/mm/yyyy HH:MM'
+  });
+  $('#inputNanme13').datetimepicker({
+    footer: true,
+    modal: true,
+    format: 'dd/mm/yyyy HH:MM'
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Viagem - Auten PRO{% endblock %}
+
+{% block css %}
+<link href="https://unpkg.com/gijgo@1.9.14/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Viagem</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Viagem</li>
+      <li class="breadcrumb-item active">Novo</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Uhuul nova viagem!!!</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'ViagemSaveAction' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="col-lg-4">
+              <label for="inputNanme5" class="form-label">Cliente (*)</label>
+              <br>
+              <select name="client_id" required class="form-control select2">
+                <option value="0">Selecione</option>
+                {% for item in empresas %}
+                <option value="{{ item.id }}">{{ item.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-lg-4">
+              <label for="inputNanme5" class="form-label">Técnico (*)</label>
+              <br>
+              <select name="tecnico" required class="form-control select2">
+                <option value="0">Selecione</option>
+                {% for item in tecnicos %}
+                <option value="{{ item.id }}">{{ item.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-lg-4">
+              <label for="inputNanme5" class="form-label">Carro (*)</label>
+              <br>
+              <select name="carro" required class="form-control select2">
+                <option value="0">Selecione</option>
+                {% for item in carros %}
+                <option value="{{ item.id }}">{{ item.modelo }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme11" class="form-label">Data Saída Prevista (*)</label>
+              <input type="text" class="form-control" id="inputNanme11" placeholder="Data Saída Prevista"
+                name="data_saida_prevista" required>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme12" class="form-label">Km Prevista</label>
+              <input type="text" class="form-control" id="inputNanme12" placeholder="Quilometragem total prevista"
+                name="km_previsto">
+            </div>
+
+
+            <div class="col-lg-6">
+              <label for="inputNanme13" class="form-label">Data Chegada Prevista</label>
+              <input type="text" class="form-control" id="inputNanme13" placeholder="Data Chegada Prevista"
+                name="data_chegada_prevista">
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Link GPS</label>
+              <input type="text" class="form-control" id="inputNanme14" placeholder="GPS do local onde está a máquina"
+                name="link_gps">
+            </div>
+
+            <div class="col-lg-12">
+              <label for="inputNanme15" class="form-label">Observação</label>
+              <textarea class="form-control" id="inputNanme15" placeholder="Observação" name="observacao"></textarea>
+            </div>
+
+            <div class="col-lg-12">
+              <div class="col-lg-11 col-xs-12">
+
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+
+                <a href="{% url 'ViagemIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+              </div>
+
+
+
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+
+<script>
+  $('#inputNanme11').datetimepicker({
+    footer: true,
+    modal: true,
+    format: 'dd/mm/yyyy HH:MM'
+  });
+  $('#inputNanme13').datetimepicker({
+    footer: true,
+    modal: true,
+    format: 'dd/mm/yyyy HH:MM'
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Viagem - instalação{% endblock %}
+
+{% block css %}
+<style>
+.maquina{
+  border: 1px dashed black;
+  border-radius: 10px;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Instalação</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Viagem</li>
+      <li class="breadcrumb-item active">Instalação</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+  
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      {% if instalacoes %}
+      <table class="table datatable">
+        <thead>
+          <tr>
+            <th scope="col">#</th>            
+            <th scope="col">Foto</th>
+            <th scope="col">Cliente</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Máquina</th>
+            <th scope="col">É re-trabalho?</th>
+            <th scope="col">Status</th>
+            <th scope="col">Criado em</th>
+            <th scope="col">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for item in instalacoes %}
+        <tr>
+          {% comment %} # {% endcomment %}
+          <td>{{ item.id }}</td>          
+
+          {% comment %} Foto {% endcomment %}
+          <td>
+            {% if item.foto_capa %}
+            <img src="{{ DOMAIN_ASSETS }}/viagem/instalacao/{{ item.foto_capa }}.png" alt="Foto" width="200px" class="maquina">
+            {% else %}
+            <img src="{% static 'backend/img/not_picture.png' %}" alt="Foto" width="200px" class="maquina">             
+            {% endif %}
+          </td>   
+
+          {% comment %} Cliente {% endcomment %}
+          <td>{{ item.cliente_auten.nome }}</td>
+
+          {% comment %} Tipo {% endcomment %}
+          <td>{{ item.get_tipo_instalacao_display }}</td>
+
+          {% comment %} Máquina {% endcomment %}
+          <td>{{ item.get_maquina_modelo_display }}</td>          
+
+          <td>
+            {% if item.viagem_instalacao_pai %}
+            Sim, é o {{ item.viagem_instalacao_pai.id }}!
+            {% else %}
+            Não!
+            {% endif %}
+          </td>
+
+          <td>
+            {% if item.status %}
+            Finalizado
+            {% else %}
+            Pendente
+            {% endif %}
+          </td>
+
+          {% comment %} Criado em {% endcomment %}
+          <td>{{ item.created_at }}</td>
+          
+          <td>
+            <!-- Menu de Ações -->
+            <div class="btn-group">
+              <button type="button" class="btn btn-primary">Opções</button>
+              <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="visually-hidden">Opções</span>
+              </button>
+              <ul class="dropdown-menu">
+                <li>
+                  {% if item.status == 0 %}
+                  <a class="dropdown-item" href="{% url 'ViagemInstalacaoEditView' item.id %}">
+                    <i class="bi bi-sliders"></i> Editar
+                  </a>
+                  {% else %}
+                  <a class="dropdown-item disabled" href="#">
+                    <i class="bi bi-sliders"></i> Editar
+                  </a>
+                  {% endif %}
+                </li>                
+                <li><hr class="dropdown-divider"></li>        
+                
+                <li>
+                  
+                  <a class="dropdown-item" href="{% url 'ViagemInstalacaoMontarKitView' item.id %}">
+                    <i class="bi bi-wrench"></i> Montar Kit
+                  </a>
+                  
+                </li>                
+                <li><hr class="dropdown-divider"></li>                
+
+                <li>
+                  {% if item.status == 0 %}
+                  <a class="dropdown-item" href="{% url 'ViagemInstalacaoFinalizarView' item.id %}"><i class="bi bi-stop"></i> Finalizar</a>
+                  {% else %}
+                  <a class="dropdown-item disabled" href="#"><i class="bi bi-stop"></i> Finalizar</a>
+                  {% endif %}                  
+                </li>                
+                <li><hr class="dropdown-divider"></li>        
+                
+                {% if item.status %}
+                <a class="dropdown-item" href="{% url 'ViagemInstalacaoView' item.id %}"><i class="bi bi-eye"></i> Ver</a>
+                {% endif %}
+
+                
+                <li>
+                  <a class="dropdown-item" href="#" @click.once="deleteConfirm('{% url 'ViagemInstalacaoDeleteAction' item.id  %}')">
+                    <i class="bi bi-x-circle"></i> Excluir
+                  </a>
+                </li>
+                
+
+              </ul>
+            </div>
+          </td>
+          {% endfor %}
+        </tr>
+        </tbody>
+      </table>
+      {% else %}
+      <div class="alert alert-danger" role="alert">
+        Não há dados!
+      </div>
+      {% endif %}
+    </div>
+    <div class="col-lg-12">      
+
+      {% if viagem.status != 3 %}
+      <a href="{% url 'ViagemInstalacaoNewView' viagem.id %}" class="btn btn-primary">
+        <i class="bx bxs-plus-circle"></i> Nova Instalação nesta mesma viagem
+      </a>
+      {% endif %}
+
+      <a href="{% url 'ViagemIndexView' %}" class="btn btn-secondary">
+        <i class="bx bx-arrow-back"></i> Voltar
+      </a>
+    </div>
+  </div>
+
+
+
+</section>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/ViagemInstalacao/index.js' %}"></script>
+{% endblock %}

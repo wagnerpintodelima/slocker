@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Atualizações - Atron{% endblock %}
+
+
+{% block body %}
+<div id="indexAtronUpdate">
+  <div class="pagetitle">
+    <h1>Atualizações Atron</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item active">Atron</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+
+  <section class="section dashboard">
+    <div class="row">
+      <div class="col-lg-12">
+        {% if data %}
+        <table class="table">
+          <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Versão</th>
+            <th scope="col">Prioridade</th>
+            <th scope="col">Criado em</th>
+            <th scope="col">Status</th>
+            <th scope="col">Ações</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for item in data %}
+          <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.version_current }}</td>
+            <td>
+              {% if item.level == 0 %}
+              Baixa
+              {% elif item.level == 1 %}
+              Média (Urgente)
+              {% elif item.level == 2 %}
+              Alta (ForceUpdate)
+              {% endif %}              
+            </td>
+            <td>{{ item.created_at }}</td>
+            <td>
+              {% if item.status %}
+              <i class="bi bi-hand-thumbs-up-fill"></i>
+              {% else %}
+              <i class="bi bi-hand-thumbs-down"></i>
+              {% endif %}
+            </td>
+            <td>
+              <!-- Menu de Ações -->
+              <div class="btn-group">
+                <button type="button" class="btn btn-primary">Opções</button>
+                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span class="visually-hidden">Opções</span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a class="dropdown-item" href="{% url 'atronUpdateEditView' item.id %}"><i class="bi bi-sliders"></i> Editar</a>
+                  </li>    
+                  <li>
+                    <a class="dropdown-item" href="{% url 'atronUpdateDownloadAPKAction' item.id %}"><i class="bi bi-cloud-arrow-down" target="_blank"></i> Download APK</a>
+                  </li>                  
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <a class="dropdown-item" href="#" @click="deleteConfirm('{% url 'atronUpdateDeleteAction' item.id  %}')">
+                      <i class="bi bi-x-circle"></i> Excluir
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </td>
+            {% endfor %}
+          </tr>
+          </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-danger" role="alert">
+          Não há dados!
+        </div>
+        {% endif %}
+      </div>
+      <div class="col-lg-12">
+        <a href="{% url 'atronUpdateNewView' %}" class="btn btn-primary">
+          <i class="bi bi-cloud-arrow-down"></i> Nova Atualização
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/AtronUpdate/index.js' %}"></script>
+{% endblock %}

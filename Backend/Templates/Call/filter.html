@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contato - Lista{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Meus atendimentos</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Atendimento</li>
+      <li class="breadcrumb-item active">Filtro</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+  
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">                  
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Filtro de dados</h5>
+          
+          <form class="row g-3" method="POST" action="{% url 'CallFilterAction' %}" enctype="multipart/form-data">
+                      
+            {% csrf_token %}
+            
+            <div class="row">
+
+              <div class="mb-3 col-6">
+                <label for="">Filtrar por Técnico</label>
+                <select class="form-select select2 w-100" name="tecnico">
+                  <option value="-1">Todos</option>
+                  {% for tec in tecnicos %}
+                  <option value="{{ tec.id }}" {% if tec.user_auth.id == request.user.id %}selected{% endif %}>
+                    {{ tec.nome }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+  
+              <div class="mb-3 col-6">
+                <label for="">Filtrar por Clientes</label>
+                <select class="form-select select2 w-100" name="cliente">
+                  <option value="-1">Todos</option>
+                  {% for cli in clientes %}
+                  <option value="{{ cli.id }}">
+                    {{ cli.nome }} de {{ cli.cidade }}/{{ cli.uf }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="mb-3 col-4">
+                <label for="">Filtrar por Tipo</label>
+                <select class="form-select select2 w-100" name="assunto">
+                  <option value="-1">Todos</option>
+                  {% for assunto in ASSUNTO_CALL_CHOICES %}
+                  <option value="{{ assunto.0 }}">
+                    {{ assunto.1 }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="mb-3 col-4">
+                <label for="">Filtrar por Status</label>
+                <select class="form-select select2 w-100" name="status">
+                  <option value="-2">Pendente + Em Atendimento</option>
+                  <option value="-1">Todos</option>
+                  {% for status in STATUS_CALL_CHOICES %}
+                  <option value="{{ status.0 }}">
+                    {{ status.1 }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="mb-3 col-4">
+                <label for="">Filtrar por Data</label>
+                <select class="form-select select2 w-100" name="data">
+                  <option value="1">Últimos 90 Dias</option>
+                  <option value="2">Últimos 60 Dias</option>                  
+                  <option value="3">Últimos 30 Dias</option>                  
+                  <option value="-1">Todos</option>                                    
+                </select>
+              </div>              
+            </div>            
+
+
+            <div class="col-lg-12">
+              <div class="col-lg-11 col-xs-12 d-flex justify-content-between">
+                
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-search"></i> Buscar
+                </button>                
+
+              </div>
+            </div>
+            
+    
+          </form>
+
+        </div>
+      </div>
+
+    </div>        
+  </div>
+
+
+
+</section>
+{% endblock %}
+
+{% block js %}
+{% comment %} <script src="{% static 'backend/js/Carro/index.js' %}"></script> {% endcomment %}
+{% endblock %}

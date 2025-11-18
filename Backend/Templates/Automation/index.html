@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Automações - Lista{% endblock %}
+
+{% block css %}
+
+
+<style type="text/css">
+  .btn-auten{
+    width: 100%;
+    height: 150px;
+    margin-bottom: 5%;
+    align-content: center;
+  }
+</style>
+
+{% endblock %}
+
+{% block body %}
+<div id="indexHU">
+  <div class="pagetitle">
+    <h1>Automação</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item">Automações</li>
+        <li class="breadcrumb-item active">Tipos</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+
+  <section class="section dashboard">
+    <div class="row">
+      
+      {% if data %}
+
+        {% for item in data %}        
+        <div class="col-lg-3 col-sm-12">
+          <a href="{% url item.route item.id %}" class="btn btn-outline-primary btn-auten">
+            {{ item.description | title }}
+          </a>
+        </div>              
+        {% endfor %}
+
+      {% else %}
+      <div class="alert alert-danger" role="alert">
+        Não há dados!
+      </div>
+      {% endif %}      
+    </div>
+  </section>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/Automation/index.js' %}"></script>
+{% endblock %}

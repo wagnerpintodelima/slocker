@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Produto - Editar{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Produto</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Produto</li>
+      <li class="breadcrumb-item active">{{ item.descricao }}</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cadastro</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'ProdutoEditAction' item.id %}" enctype="multipart/form-data">
+            
+            {% csrf_token %}
+
+            <div class="col-lg-3">
+              <label for="inputNanme14" class="form-label">Foto Atual</label>
+              <img src="{{ DOMAIN_ASSETS }}/produto/{{ item.foto }}.png" alt="Foto" width="200px" loading="lazy">
+            </div>
+
+            <div class="col-lg-9">
+              <label for="inputNanme10" class="form-label">Descrição (*)</label>
+              <input type="text" class="form-control" id="inputNanme10" placeholder="Descrição" name="descricao" required value="{{ item.descricao }}">
+            </div>
+
+            <div class="col-lg-4">
+              <label for="inputNanme1" class="form-label">Quantidade Mínima para compras(*)</label>
+              <input type="text" class="form-control" id="inputNanme1" value="10" placeholder="Quantidade para disparar compra" value="{{ item.quantidade_minima }}" name="quantidade_minima" required>
+            </div>
+
+            <div class="col-lg-4">
+              <label for="inputNanme2" class="form-label">Endereço (*)</label>
+              <input type="text" class="form-control" id="inputNanme2" placeholder="Endereço da prateleira" name="endereco" value="{{ item.endereco }}" required>
+            </div>
+
+            <div class="col-lg-4">
+              <label for="inputNanme3" class="form-label">Link para comprar (*)</label>
+              <input type="text" class="form-control" id="inputNanme3" placeholder="Link para comprar" name="link" value="{{ item.link }}" required>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">É produto final? (*)</label>
+              <br>
+              <select name="is_final" required class="form-control select2">                                
+                <option value="0" {% if item.is_final %}selected{% endif %}>Não, é apenas componente!</option>             
+                <option value="1" {% if not item.is_final %}selected{% endif %}>Sim, é produto final</option>      
+              </select>
+            </div>                                                                            
+
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Foto (Só preencha se for mudar de foto)</label>
+              <input type="file" class="form-control" id="inputNanme14" placeholder="Foto" name="foto">
+            </div>            
+
+            <div class="col-lg-12">
+              <div class="col-lg-11 col-xs-12">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                
+                <a href="{% url 'ProdutoIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+              </div>              
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Carro - Editar{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Cliente</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item active">Carro</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cadastro</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'CarroEditAction' carro.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Cliente (*)</label>
+              <br>
+              <select name="empresa" required class="form-control">
+                <option value="0">Selecione</option>
+                {% for item in empresas %}
+                <option value="{{ item.id }}" {% if item.id == carro.empresa.id %}selected{% endif %}>{{ item.razao_social }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Marca (*)</label>
+              <br>
+              <select name="marca" required class="form-control">
+                <option value="0">Selecione</option>
+                <option {% if 'Volkswagen' == carro.marca %}selected{% endif %}>Volkswagen</option>
+                <option {% if 'Fiat' == carro.marca %}selected{% endif %}>Fiat</option>
+                <option {% if 'Chevrolet' == carro.marca %}selected{% endif %}>Chevrolet</option>
+                <option {% if 'Renault' == carro.marca %}selected{% endif %}>Renault</option>
+                <option {% if 'Peugeot' == carro.marca %}selected{% endif %}>Peugeot</option>
+                <option {% if 'Hyundai' == carro.marca %}selected{% endif %}>Hyundai</option>
+              </select>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme10" class="form-label">Placa (*)</label>
+              <input type="text" class="form-control" id="inputNanme10" placeholder="Placa" name="placa" required value="{{ carro.placa }}">
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Modelo (*)</label>
+              <br>
+              <select name="modelo" required class="form-control">
+                <option value="0">Selecione</option>
+                <option {% if 'Strada' == carro.modelo %}selected{% endif %}>Strada</option>
+                <option {% if 'Uno Way' == carro.modelo %}selected{% endif %}>Uno Way</option>
+                <option {% if 'Uno Mille' == carro.modelo %}selected{% endif %}>Uno Mille</option>
+                <option {% if 'Gol' == carro.modelo %}selected{% endif %}>Gol</option>
+                <option {% if 'Voyage' == carro.modelo %}selected{% endif %}>Voyage</option>
+                <option {% if 'Hyundai' == carro.modelo %}selected{% endif %}>Hyundai</option>
+              </select>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Próxima troca de Pneu</label>
+              <input type="text" class="form-control" id="inputNanme14" placeholder="Km de troca de pneu"
+                name="km_proxima_troca_pneu" value="{{ carro.km_proxima_troca_pneu }}">
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Cor (*)</label>
+              <br>
+              <select name="cor" required class="form-control">
+                <option value="0">Selecione...</option>
+                <option {% if 'Preto' == carro.cor %}selected{% endif %}>Preto</option>
+                <option {% if 'Branco' == carro.cor %}selected{% endif %}>Branco</option>
+                <option {% if 'Cinza' == carro.cor %}selected{% endif %}>Cinza</option>
+                <option {% if 'Vermelho' == carro.cor %}selected{% endif %}>Vermelho</option>
+                <option {% if 'Azul' == carro.cor %}selected{% endif %}>Azul</option>
+                <option {% if 'Rosa' == carro.cor %}selected{% endif %}>Rosa</option>
+              </select>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Próxima troca de óleo</label>
+              <input type="text" class="form-control" id="inputNanme14" placeholder="Km de troca de óleo"
+                name="km_proxima_troca_oleo" value="{{ carro.km_proxima_troca_oleo }}">
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme11" class="form-label">Ano (*)</label>
+              <input type="text" class="form-control" id="inputNanme11" placeholder="Ano" name="ano" required value="{{ carro.ano }}">
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Km Rodados</label>
+              <input type="text" class="form-control" id="inputNanme14" placeholder="Km rodados" name="km_rodados" value="{{ carro.km_rodados }}">
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme15" class="form-label">Observação</label>
+              <textarea class="form-control" id="inputNanme15" placeholder="Observação" name="observacao">{{ carro.observacao }}</textarea>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Foto</label>
+              <input type="file" class="form-control" id="inputNanme14" placeholder="Foto" name="foto">
+            </div>
+
+            <div class="col-lg-6">
+              <img src="{{ DOMAIN_ASSETS }}/carro/{{ carro.foto }}.png" alt="Foto" width="200px">
+            </div>
+
+            <div class="col-lg-12 d-flex justify-content-end">
+              <div class="col-lg-11 col-xs-12">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                <button type="reset" class="btn btn-danger">
+                  <i class="bx bxs-eraser"></i> Limpar
+                </button>
+                <a href="{% url 'CarroIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+              </div>
+              <div class="col-lg-1 col-xs-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" {% if carro.status %}checked{% endif %} name="status"
+                    value="1">
+                  <label class="form-check-label" for="flexSwitchCheckChecked">Ativo</label>
+                </div>
+              </div>
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

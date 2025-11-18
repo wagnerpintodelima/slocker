@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termo de Garantia</title>
+    <style>
+        html {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            /* Ajuda a manter as cores e evitar variações na impressão */
+        }
+
+        *,
+        *:before,
+        *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            font-family: "Times New Roman", Arial, sans-serif;                        
+            line-height: 1;
+            font-size: 1.25rem;                                    
+            height: auto;
+            text-align: justify;            
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+            margin-bottom: 3mm;
+        }
+
+        h1 {
+            font-size: 1.65rem;
+            margin-top: 20mm;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            margin-top: 0;
+        }
+
+        .section {
+            margin-bottom: 5mm;
+        }
+
+        .underline {
+            display: inline-block;
+            border-bottom: 1px solid #000;
+            width: 10cm;
+            padding-bottom: 2px;
+            /* Adicionado para evitar problemas de impressão */
+        }
+
+        .underline.short {
+            width: 2cm;
+        }
+
+        .qr-code {
+            text-align: center;
+            margin-top: 2mm;
+        }
+
+        @page {
+            size: A4;
+
+            html {
+                margin: 0;
+            }
+        }
+    </style>
+    
+</head>
+
+<body>
+    <h1>TERMO DE GARANTIA</h1>
+    <div class="section">
+        <p>Este documento estabelece os termos e condições sob os quais a garantia do equipamento Atron GPS é concedida
+            ao cliente. O cumprimento desses termos é essencial para a validade da garantia:</p>
+        <ol>
+            <li>Não exponha o equipamento à água ou alta umidade.</li>
+            <li>Utilize exclusivamente uma fonte de alimentação de 12V.</li>
+            <li>Use o suporte com ventosas apenas para sustentar o case do Atron GPS. Não apoie outros objetos.</li>
+            <li>Mantenha a entrada de ar do case desobstruída.</li>
+            <li>Instale a antena GPS em superfície metálica externa e superior da cabine do trator, conforme as
+                instruções.</li>
+            <li>Evite torcer, danificar ou comprometer os cabos, especialmente o da antena GPS.</li>
+            <li>Nunca acione o trator com o sistema Atron GPS ligado.</li>
+            <li>Não desmontar, abrir ou modificar o Atron GPS, seus cabos ou acessórios sem a devida autorização.</li>
+            <li>Não use cabos, conectores ou fontes de alimentação não originais ou não certificados.</li>
+        </ol>
+        <p>O descumprimento de qualquer item acima anula a garantia e transfere ao cliente a responsabilidade por danos
+            ao equipamento.</p>
+    </div>
+    <h2>DECLARAÇÃO DE COMPROMISSO</h2>
+    <p>Eu, <span class="underline"></span>, declaro que compreendo e aceito os termos de uso e garantia estabelecidos
+        neste documento para o produto Atron GPS, número de série <strong
+            id="serial-number">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</strong>. Estou ciente de que o descumprimento destes
+        termos pode resultar na anulação da garantia e reconheço a responsabilidade por qualquer dano causado pelo uso
+        indevido do equipamento.</p>
+    <div class="section">
+        <p><strong>TÉCNICO RESPONSÁVEL:</strong> <span class="underline"></span></p>
+        <p><strong>DATA DA INSTALAÇÃO:</strong> <span class="underline short"></span>/<span
+                class="underline short"></span>/<span class="underline short"></span></p>
+    </div>
+    <div class="qr-code">
+        <img id="qrcode" src="https://via.placeholder.com/150" alt="QR Code">
+    </div>
+</body>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {    
+    let serial = '{{ atron.atron_device_register.device_number }}'
+    document.getElementById('serial-number').textContent = serial 
+    document.getElementById('qrcode').src = `https://api.qrserver.com/v1/create-qr-code/?data=${serial}&size=150x150`;
+    
+    setTimeout(function(){
+      window.print()
+    },3e3);
+    
+  });  
+</script>
+
+</html>

@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Usuário App - Lista{% endblock %}
+
+{% block css %}
+  <style>
+    .foto-user{
+      border-radius: 150px;
+      width: 70px;
+    }
+    .pagination .page-link{ cursor:pointer; }
+    .pagination .page-item.disabled .page-link{ cursor: not-allowed; }
+  </style>
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Usuários App</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item active">Usuários App</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard" id="indexUserApp">
+  <div class="row">
+    <div class="col-lg-12">
+
+      {% if page_obj and page_obj.object_list %}
+      <!-- Barra superior: per_page + info -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <form method="get" class="d-flex align-items-center gap-2">
+            <label for="per_page" class="form-label mb-0">Itens por página:</label>
+            <select class="form-select form-select-sm" id="per_page" name="per_page" style="width:auto" onchange="this.form.submit()">
+              <option value="10"  {% if per_page == 10 %}selected{% endif %}>10</option>
+              <option value="25"  {% if per_page == 25 %}selected{% endif %}>25</option>
+              <option value="50"  {% if per_page == 50 %}selected{% endif %}>50</option>
+              <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+            </select>
+            <!-- Sempre que mudar o per_page, começamos pela página 1 -->
+            <input type="hidden" name="page" value="1" />
+          </form>
+        </div>
+        <div class="text-muted small">
+          Mostrando
+          <strong>
+            {% if page_obj.paginator.count > 0 %}
+              {{ page_obj.start_index }}–{{ page_obj.end_index }}
+            {% else %}
+              0
+            {% endif %}
+          </strong>
+          de <strong>{{ page_obj.paginator.count }}</strong> registros
+        </div>
+      </div>
+
+      <table class="table" id="datatable">
+        <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Cond.</th>
+          <th scope="col">Foto</th>
+          <th scope="col">Nome</th>
+          <th scope="col">CPF</th>
+          <th scope="col">Criado em</th>
+          <th scope="col">Status</th>
+          <th scope="col">Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in page_obj %}
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.client.nome_fantasia }}</td>
+          <td>
+            {% if item.picture %}
+            <img src="{{ DOMAIN_ASSETS }}/user_app/{{ item.picture }}.png" alt="Foto" class="foto-user">
+            {% else %}
+            . . .
+            {% endif %}
+          </td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.cpf }}</td>
+          <td>{{ item.created_at }}</td>
+          <td>
+            {% if item.status %}
+            <i class="bi bi-hand-thumbs-up-fill"></i>
+            {% else %}
+            <i class="bi bi-hand-thumbs-down"></i>
+            {% endif %}
+          </td>
+          <td>
+            <!-- Menu de Ações -->
+            <div class="btn-group">
+              <button type="button" class="btn btn-primary">Opções</button>
+              <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="visually-hidden">Opções</span>
+              </button>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item" href="{% url 'UserAppEditView' item.id %}"><i class="bi bi-sliders"></i> Editar</a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <a class="dropdown-item" href="#" @click.once="deleteConfirm('{% url 'UserAppDeleteAction' item.id  %}')">
+                    <i class="bi bi-x-circle"></i> Excluir
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Paginação -->
+      <nav aria-label="Navegação de página">
+        <ul class="pagination">
+          <!-- Primeiro -->
+          <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            {% if page_obj.has_previous %}
+              <a class="page-link" href="?page=1&per_page={{ per_page }}">« Primeiro</a>
+            {% else %}
+              <a class="page-link" href="#" tabindex="-1" aria-disabled="true">« Primeiro</a>
+            {% endif %}
+          </li>
+
+          <!-- Anterior -->
+          <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            {% if page_obj.has_previous %}
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">‹ Anterior</a>
+            {% else %}
+              <a class="page-link" href="#" tabindex="-1" aria-disabled="true">‹ Anterior</a>
+            {% endif %}
+          </li>
+
+          <!-- Números de página (janela +/-2) -->
+          {% for num in page_obj.paginator.page_range %}
+            {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+              <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          <!-- Próxima -->
+          <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+            {% if page_obj.has_next %}
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">Próxima ›</a>
+            {% else %}
+              <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Próxima ›</a>
+            {% endif %}
+          </li>
+
+          <!-- Última -->
+          <li class="page-item {% if page_obj.number == page_obj.paginator.num_pages %}disabled{% endif %}">
+            {% if page_obj.number != page_obj.paginator.num_pages %}
+              <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&per_page={{ per_page }}">Última »</a>
+            {% else %}
+              <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Última »</a>
+            {% endif %}
+          </li>
+        </ul>
+      </nav>
+
+      {% else %}
+      <div class="alert alert-danger" role="alert">
+        Não há dados!
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-12">
+      <a href="{% url 'UserAppNewView' %}" class="float" data-bs-toggle="tooltip" data-bs-placement="top" title="Novo">
+        +
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/UserApp/index.js' %}"></script>
+{% endblock %}

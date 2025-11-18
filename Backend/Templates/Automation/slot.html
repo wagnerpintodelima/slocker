@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Automações - Dados na memória do uC{% endblock %}
+
+
+{% block body %}
+<div id="appSlotList">
+
+  <endpoint id="endpoint-save" data-url="{% url 'AutomationEditSlotSaveAction' %}"></endpoint>
+  <endpoint id="endpoint-send-mqtt" data-url="{% url 'AutomationSendToMqttSlotsAction' %}"></endpoint>
+  <endpoint id="endpoint-send-mqtt-edit" data-url="{% url 'AutomationSendToMqttSlotsEditAction' %}"></endpoint>
+  <data id="slots" data-slots='{{ slots|safe }}'></data>
+  <data id="hus" data-hus='{{ hus|safe }}'></data>
+
+
+  <div class="pagetitle">
+    <h1>Memória</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item">Automação</li>
+        <li class="breadcrumb-item">{{ automation.company.nome_fantasia | capfirst }}</li>
+        <li class="breadcrumb-item active">Slots</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+
+  <section class="section dashboard">
+    <div class="row">
+
+      <table class="table table-bordered">
+        <thead>
+        <tr style="text-align:center;">
+          <th style="align-content: center;" scope="col">ID(slots array uC)</th>
+          <th style="align-content: center;" scope="col">Nome(Slot)</th>
+          <th style="align-content: center;" scope="col">SolenoideAddress</th>
+          <th style="align-content: center;" scope="col">Model</th>
+          <th style="align-content: center;" scope="col">Apartamento</th>
+          <th style="align-content: center;" scope="col">Password</th>
+          <th style="align-content: center;" scope="col">Status</th>
+          <th style="align-content: center;" scope="col">Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr v-for="(slot,index) in slots" style="text-align:center;">
+          <td style="align-content: center;">${ slot.fields.id_in_array_slots }$</td>
+          <td style="align-content: center;">${ slot.fields.name }$</td>
+          <td style="align-content: center;">${ slot.fields.solenoide_address }$</td>
+          <td style="align-content: center;">${ descricaoModel[slot.fields.model] }$</td>
+          <td style="align-content: center;">${ slot.fields.description }$</td>
+          <td style="align-content: center;">${ slot.fields.password }$</td>
+          <td style="align-content: center;">${ descricaoStatus[slot.fields.status] }$</td>
+          <td>
+            <!-- Menu de Ações -->
+            <a class="btn btn-primary" href="#" @click="openModalEdit(slot)">
+              <i class="bi bi-pencil-square"></i> Editar
+            </a>
+            <a class="btn btn-danger" href="#" @click.once="deleteConfirm('{% url 'AutomationEditSlotDeleteAction' '__pk__'  %}', slot.pk)">
+              <i class="bi bi-x-circle"></i> Excluir
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
+      <div class="col-lg-12">
+        <a href="#" class="btn btn-primary" @click="openModalNewSlot">
+          <i class="bx bxs-plus-circle"></i> Novo SLOT
+        </a>
+
+        <a href="#" class="btn btn-danger" @click="loadMQTTConfirm" v-show="btnMqttEnable">
+          <i class="bi bi-send"></i> Atualizar automação - Slots(MQTT)
+        </a>
+
+        <a href="{% url 'AutomationIndexView' %}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+
+      </div>
+    </div>
+
+  </section>
+
+
+  <div class="modal" tabindex="-1" role="dialog" id="modal-new-slot">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Novo SLOT</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="closeModalNewSlot">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <input type="hidden" id="automacao_id" value="{{ automation.id }}" />
+
+            <div class="row">
+
+              <div class="col-lg-6 col-xs-12">
+                <div class="form-group">
+                  <label for="id_in_array_slots">ID (array slots)</label>
+                  <select v-model="id_in_array_slots" required class="form-control" id="id_in_array_slots">
+                    <option value="null">Selecione...</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="name">Nome</label>
+                  <select v-model="name" required class="form-control" id="name">
+                    <option value="null">Selecione...</option>
+                    <optgroup label="Linha Zero (Superior)">
+                      <option value="000">000</option>
+                      <option value="001">001</option>
+                      <option value="010">010</option>
+                      <option value="011">011</option>
+                      <option value="020">020</option>
+                      <option value="021">021</option>
+                    </optgroup>
+
+                    <optgroup label="Linha Um (Tela no centro)">
+                      <option value="100">100</option>
+                      <option value="101">101</option>
+                      <option value="PPP">HMI</option>
+                      <option value="120">120</option>
+                      <option value="121">121</option>
+                    </optgroup>
+
+                    <optgroup label="Linha Dois">
+                      <option value="200">200</option>
+                      <option value="201">201</option>
+                      <option value="210">210</option>
+                      <option value="211">211</option>
+                      <option value="220">220</option>
+                      <option value="221">221</option>
+                    </optgroup>
+
+                    <optgroup label="Linha Três (Inferior)">
+                      <option value="300">300</option>
+                      <option value="301">301</option>
+                      <option value="310">310</option>
+                      <option value="311">311</option>
+                      <option value="320">320</option>
+                      <option value="321">321</option>
+                    </optgroup>
+                  </select>
+                </div>
+              </div>
+
+              <div class="col-lg-6 col-xs-12">
+                <div class="form-group">
+                  <label for="model">Modelo(Tamanho)</label>
+                  <select v-model="model" required class="form-control" id="model">
+                    <option value="null">Selecione...</option>
+                    <option value="0">Pequeno(20x40x80)cm</option>
+                    <option value="1">Médio(40x40x80)cm</option>
+                    <option value="2">Grande(120x40x80)cm</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="solenoide_address">Endereço Solenoide (BIN)</label>
+                  <select v-model="solenoide_address" required class="form-control" id="solenoide_address">
+                    <option value="null">Selecione...</option>
+                    <option value="0000">0000</option>
+                    <option value="0001">0001</option>
+                    <option value="0010">0010</option>
+                    <option value="0011">0011</option>
+                    <option value="0100">0100</option>
+                    <option value="0101">0101</option>
+                    <option value="0110">0110</option>
+                    <option value="0111">0111</option>
+                    <option value="1000">1000</option>
+                    <option value="1001">1001</option>
+                    <option value="1010">1010</option>
+                    <option value="1011">1011</option>
+                    <option value="1100">1100</option>
+                    <option value="1101">1101</option>
+                    <option value="1110">1110</option>
+                    <option value="1111">1111</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="col-lg-12 col-xs-12">
+                <div class="form-group">
+                  <label for="model">Status</label>
+                  <select v-model="status" required class="form-control" id="status">
+                    <option value="null">Selecione...</option>
+                    <option value="0">Fechado</option>
+                    <option value="1">Aguardando abertura porta</option>
+                    <option value="2">Aguardando fechamento porta</option>
+                    <option value="3">Autorizado para receber</option>
+                    <option value="4">Abertura não autorizada</option>
+                    <option value="5">Cancelado</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="closeModalNewSlot">Fechar</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" v-show="btnSaveEnable && !saving" @click="saveData">Salvar</button>
+          <div class="spinner-border" role="status" v-show="saving">
+            <span class="sr-only"></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="modal" tabindex="-1" role="dialog" id="modal-edit-slot">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Editar SLOT</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="closeModalEdit">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+
+            <div class="form-group">
+              <label for="description_">HU (Apartamento)</label>
+              <select v-model="descriptionEdit" required class="form-control" id="description_">
+                <option value="null">Selecione...</option>
+                <option v-for="(hu,index) in hus" :value="hu.fields.descricao">${ hu.fields.descricao }$</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="password_">Password</label>
+              <input type="text" class="form-control" id="password_" aria-describedby="descriptionHelper" placeholder="5 dígitos" v-model="passwordEdit" maxlength="5" @input="onlyNumbers">
+            </div>
+
+            <div class="form-group">
+              <label for="model">Status</label>
+              <select v-model="statusEdit" required class="form-control" id="status_">
+                <option value="null">Selecione...</option>
+                <option value="0">Fechado</option>
+                <option value="1">Aguardando abertura porta</option>
+                <option value="2">Aguardando fechamento porta</option>
+                <option value="3">Autorizado para receber</option>
+                <option value="4">Abertura não autorizada</option>
+                <option value="5">Cancelado</option>
+              </select>
+            </div>
+
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="closeModalEdit">Fechar</button>
+          <button type="button" class="btn btn-danger" data-dismiss="modal" @click="saveDataEditEmpty">Liberar Slot</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" v-show="btnSaveEnableEdit && !savingEdit" @click="saveDataEdit">Salvar</button>
+          <div class="spinner-border" role="status" v-show="savingEdit">
+            <span class="sr-only"></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/Automation/slot.js' %}"></script>
+{% endblock %}

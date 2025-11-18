@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Viagem - Instalação{% endblock %}
+
+{% block css %}
+<link href="https://unpkg.com/gijgo@1.9.14/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Viagem</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Viagem</li>
+      <li class="breadcrumb-item">Instalação</li>
+      <li class="breadcrumb-item active">Nova</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Para qual cliente e qual o serviço?</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'ViagemInstalacaoSaveAction' viagem.id %}" enctype="multipart/form-data">
+            
+            {% csrf_token %}
+
+            <div class="col-lg-8">
+              <label for="inputNanme5" class="form-label">Cliente (*)</label>
+              <br>
+              <select name="client_id" required class="form-control">
+                <option value="0">Selecione</option>
+                {% for item in empresas %}
+                <option value="{{ item.id }}">{{ item.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-lg-4">
+              <label for="inputNanme5" class="form-label">Re-Trabalho (ID da Viagem Instalação PAI)</label>
+              <br>
+              <select name="viagem_instalacao_pai" required class="form-control select2">
+                <option value="0">Não é re-trabalho</option>
+                {% for item in viagemInstalacaoAnteriores %}
+                <option value="{{ item.id }}">ID: {{ item.id }} - Cliente: {{ item.cliente_auten.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Tipo Instalação (*)</label>
+              <br>
+              <select name="tipo_instalacao" required class="form-control select2">
+                <option value="0">Selecione</option>
+                {% for tipo in TIPO_INSTALACAO_CHOICES %}
+                <option value="{{ tipo.0 }}">{{ tipo.1 }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Máquina (*)</label>
+              <br>
+              <select name="maquina_modelo" required class="form-control select2">
+                <option value="0">Selecione</option>
+                {% for maquina in maquinas %}
+                <option value="{{ maquina.id }}">{{ maquina.modelo }} - {{ maquina.get_tipo_pulso_display }} - Usa Relé: {% if maquina.usa_rele %}Sim{% else %}Não{% endif %}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-lg-12">
+              <label for="job" class="form-label">Ordem de Serviço (*)</label>
+              <br>
+              <textarea name="job" id="job" rows="5" placeholder="Exemplo: Instalar V2 com 4 sensores + Ponta + Luz..." class="form-control"></textarea>
+            </div>
+
+            <hr class="mt-4">
+            
+
+            <div class="col-lg-12">
+              <div class="col-lg-11 col-xs-12">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                
+                <a href="{% url 'ViagemInstalacaoIndexView' viagem.id %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+              </div>
+
+              
+
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+<script src="https://unpkg.com/gijgo@1.9.14/js/gijgo.min.js" type="text/javascript"></script>
+<script>
+  $('#inputNanme11').datetimepicker({
+    footer: true,
+    modal: true,
+    format: 'dd/mm/yyyy HH:MM'
+  });
+  $('#inputNanme13').datetimepicker({
+    footer: true,
+    modal: true,
+    format: 'dd/mm/yyyy HH:MM'
+  });  
+</script>
+{% endblock %}

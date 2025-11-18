@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Maquina - Auten PRO{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Maquina</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Maquina</li>
+      <li class="breadcrumb-item active">Novo</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cadastro</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'MaquinaSaveAction' %}" enctype="multipart/form-data">
+            
+            {% csrf_token %}
+            
+            <div class="col-lg-4">
+              <label for="inputNanme10" class="form-label">Modelo (*)</label>
+              <input type="text" class="form-control" id="inputNanme10" placeholder="Modelo" name="modelo" required>
+            </div>
+
+            <div class="col-lg-4">
+              <label for="inputNanme5" class="form-label">Tipo (*)</label>
+              <br>
+              <select name="tipo" required class="form-control select2">
+                <option value="0">Selecione</option>
+                {% for item in MAQUINA_TIPO_CHOICES %}
+                <option value="{{ item.0 }}">{{ item.1 }}</option>             
+                {% endfor %}   
+              </select>
+            </div>     
+            
+            <div class="col-lg-4">
+              <label for="inputNanme5" class="form-label">Tipo do Pulso (*)</label>
+              <br>
+              <select name="tipo_pulso" required class="form-control select2">
+                <option value="0">Selecione</option>
+                {% for item in MAQUINA_TIPO_PULSO_CHOICES %}
+                <option value="{{ item.0 }}">{{ item.1 }}</option>             
+                {% endfor %}   
+              </select>
+            </div>                             
+            
+
+            <div class="col-lg-9">
+              <label for="inputNanme15" class="form-label">Observação</label>
+              <textarea class="form-control" id="inputNanme15" placeholder="Observação" name="observacao" rows="5"></textarea>
+            </div>
+
+            <div class="col-lg-3">
+              <label for="inputNanme14" class="form-label">Foto (*)</label>
+              <input type="file" class="form-control" id="inputNanme14" placeholder="Foto" name="foto" required>
+            </div>
+
+            <div class="col-lg-12 d-flex justify-content-end">
+              <div class="col-lg-11 col-xs-12">
+                
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                
+                <a href="{% url 'CarroIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+
+              </div>
+
+              <div class="col-lg-1 col-xs-12">                                
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked="" name="usa_rele"
+                    value="1">
+                  <label class="form-check-label" for="flexSwitchCheckChecked">Usa relé</label>
+                </div>
+              </div>
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+{% comment %}
+<!-- <script src="{% static 'backend/js/Maquina/new.js' %}"></script> {% endcomment %} -->
+{% endblock %}

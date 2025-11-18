@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ordem de Produção - Editar{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Ordem de Produção</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Ordem de Produção</li>      
+      <li class="breadcrumb-item active">Novo</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cadastro</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'OrdemProducaoEditAction' item.id %}" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <div class="col-lg-3">              
+              <img src="{{ DOMAIN_ASSETS }}/ordem/producao/{{ item.anexo }}.png" alt="Foto" width="200px" loading="lazy">
+            </div>
+
+            <div class="col-lg-3">
+              <label for="data_inicio" class="form-label">Data Início (*)</label>
+              <input type="text" class="form-control" id="data_inicio" placeholder="Data Início" name="data_inicio"
+                required value="{{ item.data_inicio | date:"d/m/Y H:i" }}">
+            </div>
+
+            <div class="col-lg-3">
+              <label for="data_entrega" class="form-label">Data Entrega (*)</label>
+              <input type="text" class="form-control" id="data_entrega" placeholder="Data Entrega" name="data_entrega"
+                required value="{{ item.data_entrega | date:"d/m/Y H:i" }}">
+            </div>
+
+            <div class="col-lg-3">
+              <label for="anexo" class="form-label">Anexo</label>
+              <input type="file" class="form-control" id="anexo" placeholder="Anexo" name="anexo">
+            </div>
+
+            <div class="col-lg-12">
+              <label for="job" class="form-label">Ordem de Produção (*)</label>
+              <textarea name="job" id="job" placeholder="Descreva sua ordem de produção aqui!" class="form-control" rows="10" required>{{ item.job | safe }}</textarea>
+            </div>   
+            
+
+            <div class="col-lg-12">
+              <div class="col-lg-11 col-xs-12">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                
+                <a href="{% url 'OrdemProducaoIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+              </div>
+              
+              
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

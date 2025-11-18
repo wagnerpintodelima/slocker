@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Produto - Lista{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Produto</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item active">Produto</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+  
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      {% if data %}
+      <table class="table datatable">
+        <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Código</th>
+          <th scope="col">Foto</th>
+          <th scope="col">Produto</th>
+          <th scope="col">Quantidade</th>
+          <th scope="col">Mín</th>                    
+          <th scope="col">É Final?</th>
+          <th scope="col">Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in data %}
+        <tr>
+          <td>
+            {{ item.id }}
+          </td>
+          <td>
+            {% if item.codigo %}
+            {{ item.codigo }}
+            {% else %}
+            AINDA NÃO TEM
+            {% endif %}
+          </td>
+          <td>
+            <img src="{{ DOMAIN_ASSETS }}/produto/{{ item.foto }}.png" alt="Foto" width="200px" loading="lazy">
+          </td>   
+          <td>{{ item.descricao }}</td>
+          <td>{{ item.quantidade_em_estoque }}</td>          
+          <td>{{ item.quantidade_minima }}</td>          
+          <td>
+            {% if item.is_final %}
+            <i class="bi bi-hand-thumbs-up-fill"></i>
+            {% else %}
+            <i class="bi bi-hand-thumbs-down"></i>
+            {% endif %}
+          </td>          
+         
+          <td>
+            <!-- Menu de Ações -->
+            <div class="btn-group">
+              <button type="button" class="btn btn-primary">Opções</button>
+              <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="visually-hidden">Opções</span>
+              </button>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item" href="{% url 'ProdutoEditView' item.id %}"><i class="bi bi-sliders"></i> Editar</a>
+                </li>       
+                
+                {% if item.is_final %}
+                <li>
+                  <a class="dropdown-item" href="{% url 'ProdutoComponentsView' item.id %}"><i class="bi bi-diagram-3"></i> Componentes</a>
+                </li>       
+                {% endif %}
+              </ul>
+            </div>
+          </td>
+          {% endfor %}
+        </tr>
+        </tbody>
+      </table>
+      {% else %}
+      <div class="alert alert-danger" role="alert">
+        Não há dados!
+      </div>
+      {% endif %}
+    </div>
+    <div class="col-lg-12">
+
+      <a href="{% url 'ProdutoNewView' %}" class="float" data-bs-toggle="tooltip" data-bs-placement="top" title="Novo">
+        +
+      </a>   
+
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/Produto/index.js' %}"></script>
+{% endblock %}

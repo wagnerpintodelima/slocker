@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Relatório Diário de Atendimentos</title>
+    <style>
+        .pull-right {
+            float: inline-end;
+        }
+
+        .nome {
+            background-color: darkkhaki;
+            height: 50px;
+            text-align: center;
+            padding-top: 25px;
+            border-radius: 30px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: sans-serif;
+            margin-top: 20px;
+          }
+          
+          thead {
+            background-color: #343a40;
+            color: #fff;
+          }
+          
+          table th,
+          table td {
+            padding: 0.75rem;
+            border: 1px solid #dee2e6;
+            text-align: left;
+          }
+          
+          tbody tr:nth-child(odd) {
+            background-color: #f8f9fa;
+          }
+          
+          tbody tr:hover {
+            background-color: #e9ecef;
+            cursor: pointer;
+          }
+
+          .link-voltar {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+          }
+          
+          .link-voltar:hover {
+            background-color: #0056b3;
+            text-decoration: none;
+            color: white;
+          }
+          
+          .link-voltar i {
+            margin-right: 6px;
+          }
+            
+            
+    </style>
+</head>
+
+<body>
+    <h1>Relatório de Automações que estão com os técnicos <span class="pull-right">{{ today }}</span></h1>
+
+    {% if dados %}
+
+    <table>
+        <tr>
+            <td>Tipo</td>
+            <td>Código</td>
+            <td>Técnico</td>
+            <td>Cliente</td>
+            <td>Dta Saída</td>
+            <td>Dta Prevista da Chegada</td>
+        </tr>
+
+        {% for item in dados %}
+        <tr>
+            <td>{{ item.descricao }}</td>
+            <td>#{{ item.id }}</td>
+            <td>{{ item.tecnico }}</td>
+            <td>{{ item.cliente }}</td>
+            <td>
+                {% if item.data_saida %}
+                {{ item.data_saida }}
+                {% else %}
+                Não foi dado o início desta viagem!
+                {% endif %}
+            </td>
+            <td>{{ item.data_chegada_prevista }}</td>
+        </tr>
+        {% endfor %}
+    </table>    
+
+    {% else %}
+    <h1>Não tem nenhum atendimento pendente!</h1>
+    {% endif %}
+
+    <br>
+    <hr>
+
+    <a href="{% url 'indexView' %}" class="link-voltar">
+        <i class="bi bi-arrow-left-circle"></i> Voltar
+    </a>
+
+</body>
+
+</html>

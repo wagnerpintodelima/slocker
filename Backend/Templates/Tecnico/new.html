@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Técnico - Auten PRO{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Técnico</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Técnico</li>
+      <li class="breadcrumb-item active">Novo</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cadastro</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'TecnicoSaveAction' %}" enctype="multipart/form-data">
+            
+            {% csrf_token %}            
+
+            <div class="col-lg-6">
+              <label for="inputNanme10" class="form-label">Nome (*)</label>
+              <input type="text" class="form-control" id="inputNanme10" placeholder="Nome" name="nome" required>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme10" class="form-label">Telefone (*)</label>
+              <input type="text" class="form-control phone" id="inputNanme10" placeholder="Telefone" name="telefone" required>
+            </div>
+            
+
+            <div class="col-lg-6">
+              <label for="inputNanme15" class="form-label">Observação</label>
+              <textarea class="form-control" id="inputNanme15" placeholder="Observação" name="observacao"></textarea>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Foto (*)</label>
+              <input type="file" class="form-control" id="inputNanme14" placeholder="Foto" name="foto" required>
+            </div>
+
+            <div class="col-lg-12 d-flex justify-content-end">
+              <div class="col-lg-11 col-xs-12">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                <button type="reset" class="btn btn-danger">
+                  <i class="bx bxs-eraser"></i> Limpar
+                </button>
+                <a href="{% url 'TecnicoIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+              </div>
+              <div class="col-lg-1 col-xs-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked="" name="status"
+                    value="1">
+                  <label class="form-check-label" for="flexSwitchCheckChecked">Ativo</label>
+                </div>
+              </div>
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+{% comment %}
+<!-- <script src="{% static 'backend/js/Tecnico/new.js' %}"></script> {% endcomment %} -->
+{% endblock %}

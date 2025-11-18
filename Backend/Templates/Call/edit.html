@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Atendimento{% endblock %}
+
+{% block css %}
+<link href="https://unpkg.com/gijgo@1.9.14/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+<style>
+  .preto{
+    background-color: #a7a7a7;
+    border-color: #000000;
+  }
+   
+  .accordion-button {
+    background-color: #2d2d2d !important;
+    color: white !important;
+  }
+  
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Atendimento</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item active">Atendimento</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Atendimento</h5>
+
+         
+
+          <div class="accordion" id="accordionExample">
+
+            <!-- Form -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                  ATENDIMENTO
+                </button>
+              </h2>
+              <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                  
+                   <!-- Vertical Form -->
+                    <form class="row g-3" method="POST" action="{% url 'CallSaveAnswerAction' call.id %}" enctype="multipart/form-data">
+                      
+                      {% csrf_token %}
+
+                      <div class="col-lg-3">
+                        <label class="form-label">Cliente</label>
+                        <input type="text" class="form-control" placeholder="Cliente" disabled value="{{ call.cliente_auten.nome }}">
+                      </div>
+
+                      <div class="col-lg-3">
+                        <label class="form-label">Telefone</label>
+                        <input type="text" class="form-control" placeholder="Cliente" disabled value="{{ call.cliente_auten.telefone }}">
+                      </div>
+
+                      <div class="col-lg-3">
+                        <label class="form-label">Assunto</label>
+                        <input type="text" class="form-control" placeholder="Assunto" disabled value="{{ call.get_assunto_display }}">
+                      </div>
+
+                      <div class="col-lg-3">
+                        <label class="form-label">Data para ligar</label>
+                        <input type="text" class="form-control" disabled value="{{ call.call_at }}">
+                      </div>
+
+                      <div class="col-lg-12">
+                        <label class="form-label">Qual é o problema?</label>
+                        <textarea class="form-control" rows="5" disabled>{{ call.descricao }}</textarea>
+                      </div>
+
+                      <hr>
+
+                      <h1>Queremos saber o que você conversou com cliente, em detalhes!</h1>
+                      <div class="col-lg-12">
+                        <label class="form-label">O que foi conversado?</label>
+                        <textarea class="form-control" rows="8" placeholder="Última conversa no dia {{ call.updated_at}} 
+
+{{ call.resposta }}" name="resposta" required></textarea>
+                      </div>
+
+                      <hr>
+
+                      <h1>Tah, e daí... o que você vai fazer para resolver esse problema? E Quando?</h1>
+                      <div class="col-lg-3">
+                        <label class="form-label">Data para ligar / próximo passo</label>
+                        <input type="text" class="form-control" placeholder="Data de ligação" id="call_at_child" name="call_at_child" required>
+                      </div>
+
+                      <div class="col-lg-9">
+                        <label class="form-label">O que você vai fazer a respeito disso?</label>
+                        <textarea class="form-control" rows="10" placeholder="Qual é o seu próximo passo?" name="next_action" required></textarea>
+                      </div>
+                      
+
+                      <div class="col-lg-12 mt-4 d-flex justify-content-between">
+                        {% for st in STATUS_CALL_CHOICES %}
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input preto" type="radio" name="status" id="status_{{ st.0 }}" value="{{ st.0 }}" required
+                          {% if call.status == st.0 %}checked{% endif %}
+                          >                
+                          <label class="form-check-label" for="status_{{ st.0 }}">
+                            {{ st.1 }}
+                          </label>
+                        </div>
+                        {% endfor %}
+                      </div>
+
+                      <hr>
+
+                      <div class="col-lg-12">
+                        <div class="col-lg-11 col-xs-12 d-flex justify-content-between">
+                          
+                          <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-save"></i> Salvar
+                          </button>
+
+                          <a href="{% url 'CallTransferView' call.id %}" class="btn btn-success">
+                            <i class="bi bi-arrow-left-right"></i> Transferir Atendimento
+                          </a>
+                          
+                          <a href="{% url 'CallIndexView' %}" class="btn btn-secondary">
+                            <i class="bx bx-arrow-back"></i> Voltar
+                          </a>
+
+                        </div>
+                      </div>
+
+                      <hr>
+
+                    </form><!-- Vertical Form -->
+
+                </div>
+              </div>
+            </div>
+
+            <!-- ATENDIMENTOS ANTERIORES -->
+            {% for call_child in callChilds %}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="heading">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseID-{{ call_child.id }}" aria-expanded="false" aria-controls="collapseID-{{ call_child.id }}">
+                  {{ call_child.created_at }}
+                </button>
+              </h2>
+              <div id="collapseID-{{ call_child.id }}" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                  <h4>O que foi falado...</h4>
+                  {{ call_child.resposta }}
+
+                  <hr>
+
+                  <h4>O que eu vou fazer?</h4>
+                  {{ call_child.next_action }}
+
+                  <hr>
+
+                  <h4>Quando eu vou fazer?</h4>
+                  {{ call_child.call_at }}
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-danger mt-4" role="alert">
+              Não tem respostas ainda!
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="col-12 mt-4">
+            <button class="btn btn-secondary" onclick="history.back()">
+              <i class="bi bi-arrow-left"></i> Voltar
+            </button>            
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+
+<script>
+  $('#call_at_child').datetimepicker({
+    footer: true,
+    modal: true,
+    format: 'dd/mm/yyyy HH:MM'
+  });  
+</script>
+{% endblock %}

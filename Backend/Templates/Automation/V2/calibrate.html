@@ -1,0 +1,994 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}V2 - Calibração{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>V2 - Calibração</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+      <li class="breadcrumb-item">V2</li>
+      <li class="breadcrumb-item active">Calibração</li>      
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+  <div class="row">
+
+    <div class="col-lg-12">
+
+      <div class="card">
+
+        <div class="card-body">
+          
+          <h5 class="card-title">Quais as configurações desta automação</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="post" action="{% url 'V2CalibrationSaveView' automation_type v2.id %}">
+            
+            {% csrf_token %}   
+
+            <input type="hidden" value="{{ v2Configuracao.id }}" name="v2_configuracao_id">
+            
+            <!-- Menu -->
+            <ul class="nav nav-tabs" id="myTab" role="tablist">              
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Geral</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Barra Direita</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact-tab-pane" type="button" role="tab" aria-controls="contact-tab-pane" aria-selected="false">Barra Esquerda</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="disabled-tab" data-bs-toggle="tab" data-bs-target="#disabled-tab-pane" type="button" role="tab" aria-controls="disabled-tab-pane" aria-selected="false">Quadro</button>
+              </li>
+            </ul>
+
+            <!-- Body -->
+            <div class="tab-content" id="myTabContent">
+              
+              <!-- Aba GERAL -->               
+              <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">                
+                <div class="row">
+                  
+                  <!-- Modo Padrão -->
+                  <div class="col-4">
+                    <label for="flexRadioDefault1" class="form-label">Modo Padrão</label>
+                    <br>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="modo_padrao" id="flexRadioDefault1" value="1" {% if v2Configuracao.modo_padrao == 1 %}checked{% endif %}>
+                      <label class="form-check-label" for="flexRadioDefault1">
+                        Modo 1
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="modo_padrao" id="flexRadioDefault2" value="2"  {% if v2Configuracao.modo_padrao == 2 or not v2Configuracao.modo_padrao %}checked{% endif %}>
+                      <label class="form-check-label" for="flexRadioDefault2">
+                        Modo 2
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="modo_padrao" id="flexRadioDefault3" value="3" {% if v2Configuracao.modo_padrao == 3 %}checked{% endif %}>
+                      <label class="form-check-label" for="flexRadioDefault3">
+                        Modo 3
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- Modo Operação -->
+                  <div class="col-4">
+                    <label class="form-label">Modo Operação</label>
+                    <br>                    
+                    {% for tipo in MODO_OPERACAO_CHOICES %}
+                    <div class="form-check form-check-inline">
+                      {% if forloop.first and not v2Configuracao.modo_operacao %}
+                      <input class="form-check-input" type="radio" name="modo_operacao" id="modo_operacao_{{ tipo.0 }}" value="{{ tipo.0 }}" checked>
+                      {% else %}
+                      <input class="form-check-input" type="radio" name="modo_operacao" id="modo_operacao_{{ tipo.0 }}" value="{{ tipo.0 }}" {% if v2Configuracao.modo_operacao == tipo.0 %}checked{% endif %}>
+                      {% endif %}
+                      
+                      <label class="form-check-label" for="modo_operacao_{{ tipo.0 }}">
+                        {{ tipo.1 }}
+                      </label>
+                    </div>
+                    {% endfor %}                    
+                  </div>
+
+                  <!-- Modo Operação Zona Crítica-->
+                  <div class="col-4">
+                    <label class="form-label">Modo Operação - Zona Crítica</label>
+                    <br>                    
+                    {% for tipo in MODO_OPERACAO_CHOICES %}                    
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="modo_operacao_zc" id="modo_operacao_zc_{{ tipo.0 }}" value="{{ tipo.0 }}" {% if v2Configuracao.modo_operacao_zc == tipo.0 %}checked{% endif %}>
+                      <label class="form-check-label" for="modo_operacao_zc_{{ tipo.0 }}">
+                        {{ tipo.1 }}
+                      </label>
+                    </div>
+                    {% endfor %}                    
+                  </div>
+                  
+                  <hr class="mt-4">
+
+                  <!-- Altura da Barra -->
+                  <div class="col-4">
+                    <label for="altura_barra" class="form-label">Altura da Barra</label>
+                    <input type="number" class="form-control" id="altura_barra" placeholder="Altura da Barra" name="altura_barra" min="0" max="300" value="{{ v2Configuracao.altura_barra | default:"140" }}">
+                  </div>
+
+                  <!-- Altura do Quadro -->
+                  <div class="col-4">
+                    <label for="altura_quadro" class="form-label">Altura do Quadro</label>
+                    <input type="number" class="form-control" id="altura_quadro" placeholder="Altura do Quadro" name="altura_quadro" min="0" max="300" value="{{ v2Configuracao.altura_quadro | default:"170" }}">
+                  </div>
+
+                  <!-- Porcentagem do compensar -->
+                  <div class="col-4">
+                    <label for="compensar_altura_porcentagem" class="form-label">Porcentagem do compensar</label>
+                    <input type="number" class="form-control" id="compensar_altura_porcentagem" placeholder="Compensar Porcentagem" name="compensar_altura_porcentagem" min="0" max="100" value="{{ v2Configuracao.compensar_altura_porcentagem | default:"50" }}">
+                  </div>
+
+                  <hr class="mt-4">
+
+                  <!-- Subir direto do Interno -->
+                  <div class="col-2">
+                    <label for="subir_direto_interno" class="form-label">Subir direto do interno</label>
+                    <input type="text" class="form-control" id="subir_direto_interno" placeholder="Subir direto do interno" name="subir_direto_interno" value="{{ v2Configuracao.subir_direto_interno | default:"50" }}">
+                  </div>
+
+                  <!-- Subir direto do Externo -->
+                  <div class="col-2">
+                    <label for="subir_direto_externo" class="form-label">Subir direto do externo</label>
+                    <input type="number" class="form-control" id="subir_direto_externo" placeholder="Subir direto do externo" name="subir_direto_externo" min="0" max="200" value="{{ v2Configuracao.subir_direto_externo | default:"60" }}">
+                  </div>
+
+                  <!-- Tempo espera Zona Crítica -->
+                  <div class="col-2">
+                    <label for="tempo_espera_zc" class="form-label">Tempo espera - Zona Crítica</label>
+                    <input type="number" class="form-control" id="tempo_espera_zc" placeholder="Tempo espera - Zona Crítica" name="tempo_espera_zc" min="0" max="10000" value="{{ v2Configuracao.tempo_espera_zc | default:"6500" }}">
+                  </div>
+
+                  <!-- Planar -->
+                  <div class="col-3">
+                    <label for="planar_1" class="form-label">Planar Ativo?</label>
+                    <br>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="planar" id="planar_1" value="1" {% if v2Configuracao.planar %}checked{% endif %}>
+                      <label class="form-check-label" for="planar_1">
+                        Sim, está!
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="planar" id="planar_0" value="0" {% if not v2Configuracao.planar %}checked{% endif %}>
+                      <label class="form-check-label" for="planar_0">
+                        Não está!
+                      </label>
+                    </div>                    
+                  </div>
+
+                  <!-- Sensor Interno Habilitado -->
+                  <div class="col-3">
+                    <label for="sensor_interno_habilitado_1" class="form-label">Sensor Interno está Habilitado?</label>
+                    <br>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="sensor_interno_habilitado" id="sensor_interno_habilitado_1" value="1" {% if v2Configuracao.sensor_interno_habilitado %}checked{% endif %}>
+                      <label class="form-check-label" for="sensor_interno_habilitado_1">
+                        Sim, está!
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="sensor_interno_habilitado" id="sensor_interno_habilitado_0" value="0" {% if not v2Configuracao.sensor_interno_habilitado %}checked{% endif %}>
+                      <label class="form-check-label" for="sensor_interno_habilitado_0">
+                        Não está!
+                      </label>
+                    </div>                    
+                  </div>
+
+                  <hr class="mt-4">                  
+
+                  <!-- Pitch MIN -->
+                  <div class="col-2">
+                    <label for="pitch_min" class="form-label">Pitch Min</label>
+                    <input type="number" class="form-control" id="pitch_min" placeholder="Pitch Min" name="pitch_min" min="-90" max="90" value="{{ v2Configuracao.pitch_min | default:"-30" }}">
+                  </div>
+
+                  <!-- Pitch max -->
+                  <div class="col-2">
+                    <label for="pitch_max" class="form-label">Pitch Máx</label>
+                    <input type="number" class="form-control" id="pitch_max" placeholder="Pitch Max" name="pitch_max" min="-90" max="90" value="{{ v2Configuracao.pitch_max | default:"30" }}">
+                  </div>
+
+                  <!-- Roll MIN -->
+                  <div class="col-2">
+                    <label for="roll_min" class="form-label">Roll Min</label>
+                    <input type="number" class="form-control" id="roll_min" placeholder="Roll Min" name="roll_min" min="-90" max="90"  value="{{ v2Configuracao.roll_min | default:"-30" }}">
+                  </div>
+
+                  <!-- Roll max -->
+                  <div class="col-2">
+                    <label for="roll_max" class="form-label">Roll Máx</label>
+                    <input type="number" class="form-control" id="roll_max" placeholder="Roll Max" name="roll_max" min="-90" max="90" value="{{ v2Configuracao.roll_max | default:"30" }}">
+                  </div>
+
+                  <!-- Yaw -->
+                  <div class="col-4">
+                    <label for="yaw" class="form-label">Yaw</label>
+                    <input type="number" class="form-control" id="yaw" placeholder="Yaw (Giro)" name="yaw" min="-90" max="90" value="{{ v2Configuracao.yaw | default:"30" }}">
+                  </div>
+
+                  <hr class="mt-4">   
+
+                  <!-- Amostras do Sensor Interno -->
+                  <div class="col-6">
+                    <label for="amostras_interno" class="form-label">Amostras do sensor Interno</label>
+                    <input type="number" class="form-control" id="amostras_interno" placeholder="Amostras do sensor Interno" name="amostras_interno" min="0" max="10" value="{{ v2Configuracao.amostras_interno | default:"4" }}">
+                  </div>                  
+
+                  <!-- Amostras do Sensor Externo -->
+                  <div class="col-6">
+                    <label for="amostras_externo" class="form-label">Amostras do sensor Externo</label>
+                    <input type="number" class="form-control" id="amostras_externo" placeholder="Amostras do sensor Externo" name="amostras_externo" min="0" max="10" value="{{ v2Configuracao.amostras_externo | default:"4" }}">
+                  </div>                                                      
+
+                </div> <!-- Fim ROW -->                
+              </div> <!-- Fim Aba Geral -->
+
+              <!-- Aba Barra da Direita -->
+              <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+
+
+                <!-- SubMenu da direita-->
+                <ul class="nav nav-tabs" id="myTab2" role="tablist">              
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#direita-pulso-tab-pane" type="button" role="tab" aria-controls="direita-tab-pane" aria-selected="true">Pulsos</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#direita-margem-tab-pane" type="button" role="tab" aria-controls="direita-tab-pane" aria-selected="false">Margens</button>
+                  </li>                  
+                </ul>
+
+                <div class="tab-content" id="myTabContent2">
+              
+                  <!-- Sub Aba Pulsos da direita -->               
+                  <div class="tab-pane fade show active" id="direita-pulso-tab-pane" role="tabpanel" aria-labelledby="direita-pulso-tab-pane" tabindex="0">                
+                    
+                    <br>
+
+                    <div class="row">     
+                  
+                      <div class="col-4" style="text-align:center;">
+                        <h3>SUBIDA</h3>
+                      </div>
+    
+                      <div class="col-4" style="text-align:center;">
+                        <h3>DESCIDA</h3>
+                      </div>
+    
+                      <div class="col-4" style="text-align:center;">
+                        <h3>COMPENSAÇÕES</h3>
+                      </div>
+    
+                      <!-- Pulso Subida -->
+                      <div class="col-4">
+                        <label for="t_subida_direita" class="form-label">Pulso Subida</label>
+                        <input type="number" class="form-control" id="t_subida_direita" placeholder="Pulso de Subida" name="t_subida_direita" min="0" max="10000" value="{{ v2Configuracao.t_subida_direita | default:"500" }}">
+                      </div>
+    
+                      <!-- Pulso Descida -->
+                      <div class="col-4">
+                        <label for="t_descida_direita" class="form-label">Pulso Descida</label>
+                        <input type="number" class="form-control" id="t_descida_direita" placeholder="Pulso Descida" name="t_descida_direita" min="0" max="10000" value="{{ v2Configuracao.t_descida_direita | default:"1000" }}">
+                      </div>
+    
+                      <!-- Compensar Negativo está ativo? -->
+                      <div class="col-2">
+                        <label for="compensar_negativo_habilitado_direita_1" class="form-label">Compensar Negativo Ativo?</label>
+                        <br>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="compensar_negativo_habilitado_direita" id="compensar_negativo_habilitado_direita_1" value="1" {% if v2Configuracao.compensar_negativo_habilitado_direita %}checked{% endif %}>
+                          <label class="form-check-label" for="compensar_negativo_habilitado_direita_1">
+                            Sim, está!
+                          </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="compensar_negativo_habilitado_direita" id="compensar_negativo_habilitado_direita_0" value="0" {% if not v2Configuracao.compensar_negativo_habilitado_direita %}checked{% endif %} >
+                          <label class="form-check-label" for="compensar_negativo_habilitado_direita_0">
+                            Não está!
+                          </label>
+                        </div>                    
+                      </div>
+    
+                      <!-- Compensar Negativo -->
+                      <div class="col-2">
+                        <label for="compensar_negativo_direita" class="form-label">Compensar Negativo</label>
+                        <input type="number" class="form-control" id="compensar_negativo_direita" placeholder="Compensar Negativo" name="compensar_negativo_direita" min="0" max="100" value="{{ v2Configuracao.compensar_negativo_direita | default:"10" }}">
+                      </div>
+    
+                      <hr class="mt-4">
+    
+                      <!-- Duty Mínimo Subida -->
+                      <div class="col-4">
+                        <label for="duty_subida_min_direita" class="form-label">Duty mínimo(%)</label>
+                        <input type="number" class="form-control" id="duty_subida_min_direita" placeholder="Pulso Mínimo %" name="duty_subida_min_direita" min="0" max="100" value="{{ v2Configuracao.duty_subida_min_direita | default:"25" }}">
+                      </div>
+    
+                      <!-- Duty Mínimo Descida -->
+                      <div class="col-4">
+                        <label for="duty_descida_min_direita" class="form-label">Duty mínimo(%)</label>
+                        <input type="number" class="form-control" id="duty_descida_min_direita" placeholder="Pulso Mínimo %" name="duty_descida_min_direita" min="0" max="100" value="{{ v2Configuracao.duty_descida_min_direita | default:"15" }}">
+                      </div>                  
+    
+                      <hr class="mt-4">
+    
+                      <!-- Duty Máximo Subida -->
+                      <div class="col-4">
+                        <label for="duty_subida_max_direita" class="form-label">Duty máximo(%)</label>
+                        <input type="number" class="form-control" id="duty_subida_max_direita" placeholder="Pulso máximo %" name="duty_subida_max_direita" min="0" max="100" value="{{ v2Configuracao.duty_subida_max_direita | default:"80" }}">
+                      </div>
+    
+                      <!-- Duty Máximo Descida -->
+                      <div class="col-4">
+                        <label for="duty_descida_max_direita" class="form-label">Duty máximo(%)</label>
+                        <input type="number" class="form-control" id="duty_descida_max_direita" placeholder="Pulso máximo %" name="duty_descida_max_direita" min="0" max="100" value="{{ v2Configuracao.duty_descida_max_direita | default:"40" }}">
+                      </div>                  
+    
+                      <!-- Compensar Positivo está ativo? -->
+                      <div class="col-2">
+                        <label for="compensar_positivo_habilitado_direita_1" class="form-label">Compensar Positivo Ativo?</label>
+                        <br>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="compensar_positivo_habilitado_direita" id="compensar_positivo_habilitado_direita_1" value="1" {% if v2Configuracao.compensar_positivo_habilitado_direita %}checked{% endif %}>
+                          <label class="form-check-label" for="compensar_positivo_habilitado_direita_1">
+                            Sim, está!
+                          </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="compensar_positivo_habilitado_direita" id="compensar_positivo_habilitado_direita_0" value="0" {% if not v2Configuracao.compensar_positivo_habilitado_direita %}checked{% endif %}>
+                          <label class="form-check-label" for="compensar_positivo_habilitado_direita_0">
+                            Não está!
+                          </label>
+                        </div>                    
+                      </div>
+    
+                      <!-- Compensar Positivo -->
+                      <div class="col-2">
+                        <label for="compensar_positivo_direita" class="form-label">Compensar Positivo</label>
+                        <input type="number" class="form-control" id="compensar_positivo_direita" placeholder="Compensar Positivo" name="compensar_positivo_direita" min="0" max="100" value="{{ v2Configuracao.compensar_positivo_direita | default:"30"}}">
+                      </div>
+    
+                      <hr class="mt-4">    
+                    </div> 
+
+                  </div><!-- Fim Aba Direita PULSOS -->
+
+                  <!-- Aba Direita Margens -->
+                  <div class="tab-pane fade" id="direita-margem-tab-pane" role="tabpanel" aria-labelledby="direita-margem-tab-pane" tabindex="0">                
+                    
+                    <br>
+
+                    <div class="row">                                                                                                        
+                      
+                      <div class="col-4" style="text-align:center;">
+                        <h3>Modo 1</h3>
+                      </div>
+    
+                      <div class="col-4" style="text-align:center;">
+                        <h3>Modo 2</h3>
+                      </div>
+    
+                      <div class="col-4" style="text-align:center;">
+                        <h3>Modo 3</h3>
+                      </div>
+    
+                      <!-- Margem Superior Externo -->
+                      <div class="col-4">
+                        <label for="margem_superior_ext_one_direita" class="form-label">Margem Superior Externo</label>
+                        <input type="number" class="form-control" id="margem_superior_ext_one_direita" placeholder="Margem Superior Externo" name="margem_superior_ext_one_direita" min="0" max="300" value="{{ v2Configuracao.margem_superior_ext_one_direita | default:"45"}}">
+                      </div>
+    
+                      <!-- Margem Superior Externo -->
+                      <div class="col-4">
+                        <label for="margem_superior_ext_two_direita" class="form-label">Margem Superior Externo</label>
+                        <input type="number" class="form-control" id="margem_superior_ext_two_direita" placeholder="Margem Superior Externo" name="margem_superior_ext_two_direita" min="0" max="300" value="{{ v2Configuracao.margem_superior_ext_two_direita | default:"45"}}">
+                      </div>
+    
+                      <!-- Margem Superior Externo -->
+                      <div class="col-4">
+                        <label for="margem_superior_ext_three_direita" class="form-label">Margem Superior Externo</label>
+                        <input type="number" class="form-control" id="margem_superior_ext_three_direita" placeholder="Margem Superior Externo" name="margem_superior_ext_three_direita" min="0" max="300" value="{{ v2Configuracao.margem_superior_ext_three_direita | default:"45"}}">
+                      </div>     
+                      
+                      <hr class="mt-4">     
+                      
+                      <!-- Margem Inferior Externo -->
+                      <div class="col-4">
+                        <label for="margem_inferior_ext_one_direita" class="form-label">Margem Inferior Externo</label>
+                        <input type="number" class="form-control" id="margem_inferior_ext_one_direita" placeholder="Margem Inferior Externo" name="margem_inferior_ext_one_direita" min="0" max="300" value="{{ v2Configuracao.margem_inferior_ext_one_direita | default:"20"}}">
+                      </div>
+    
+                      <!-- Margem Inferior Externo -->
+                      <div class="col-4">
+                        <label for="margem_inferior_ext_two_direita" class="form-label">Margem Inferior Externo</label>
+                        <input type="number" class="form-control" id="margem_inferior_ext_two_direita" placeholder="Margem Inferior Externo" name="margem_inferior_ext_two_direita" min="0" max="300" value="{{ v2Configuracao.margem_inferior_ext_two_direita | default:"20"}}">
+                      </div>
+    
+                      <!-- Margem Inferior Externo -->
+                      <div class="col-4">
+                        <label for="margem_inferior_ext_three_direita" class="form-label">Margem Inferior Externo</label>
+                        <input type="number" class="form-control" id="margem_inferior_ext_three_direita" placeholder="Margem Inferior Externo" name="margem_inferior_ext_three_direita" min="0" max="300" value="{{ v2Configuracao.margem_inferior_ext_three_direita | default:"20"}}">
+                      </div>     
+                      
+                      <hr class="mt-4">     
+    
+                      <!-- Margem Inferior Interno -->
+                      <div class="col-4">
+                        <label for="margem_inferior_int_one_direita" class="form-label">Margem Inferior Interno</label>
+                        <input type="number" class="form-control" id="margem_inferior_int_one_direita" placeholder="Margem Inferior Interno" name="margem_inferior_int_one_direita" min="0" max="300" value="{{ v2Configuracao.margem_inferior_int_one_direita | default:"60"}}">
+                      </div>
+    
+                      <!-- Margem Inferior Interno -->
+                      <div class="col-4">
+                        <label for="margem_inferior_int_two_direita" class="form-label">Margem Inferior Interno</label>
+                        <input type="number" class="form-control" id="margem_inferior_int_two_direita" placeholder="Margem Inferior Interno" name="margem_inferior_int_two_direita" min="0" max="300" value="{{ v2Configuracao.margem_inferior_int_two_direita | default:"60"}}">
+                      </div>
+    
+                      <!-- Margem Inferior Interno -->
+                      <div class="col-4">
+                        <label for="margem_inferior_int_three_direita" class="form-label">Margem Inferior Interno</label>
+                        <input type="number" class="form-control" id="margem_inferior_int_three_direita" placeholder="Margem Inferior Interno" name="margem_inferior_int_three_direita" min="0" max="300" value="{{ v2Configuracao.margem_inferior_int_three_direita | default:"60"}}">
+                      </div>     
+                      
+                      <hr class="mt-4">    
+                      
+                      <!-- Tempo Espera 1 -->
+                      <div class="col-4">
+                        <label for="tempo_espera_one_direita" class="form-label">Tempo de Espera</label>
+                        <input type="number" class="form-control" id="tempo_espera_one_direita" placeholder="Margem Inferior Interno" name="tempo_espera_one_direita" min="0" max="10000" value="{{ v2Configuracao.tempo_espera_one_direita | default:"1000"}}">
+                      </div>
+    
+                      <!-- Margem Inferior Interno -->
+                      <div class="col-4">
+                        <label for="tempo_espera_two_direita" class="form-label">Tempo de Espera</label>
+                        <input type="number" class="form-control" id="tempo_espera_two_direita" placeholder="Margem Inferior Interno" name="tempo_espera_two_direita" min="0" max="10000" value="{{ v2Configuracao.tempo_espera_two_direita | default:"2000"}}">
+                      </div>
+    
+                      <!-- Margem Inferior Interno -->
+                      <div class="col-4">
+                        <label for="tempo_espera_three_direita" class="form-label">Tempo de Espera</label>
+                        <input type="number" class="form-control" id="tempo_espera_three_direita" placeholder="Margem Inferior Interno" name="tempo_espera_three_direita" min="0" max="10000" value="{{ v2Configuracao.tempo_espera_three_direita | default:"3000"}}">
+                      </div>     
+                      
+                      <hr class="mt-4">                   
+    
+                    </div> <!-- Fim ROW -->   
+
+
+                  </div><!-- FIM Aba Direita Margens -->
+
+                </div>                 
+
+              </div><!-- FIM Aba Barra da Direita -->
+              
+              <!-- Aba Barra da Esquerda -->
+              <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+                  
+                  <!-- SubMenu da esquerda-->
+                  <ul class="nav nav-tabs" id="myTab2" role="tablist">              
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#esquerda-pulso-tab-pane" type="button" role="tab" aria-controls="esquerda-tab-pane" aria-selected="true">Pulsos</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#esquerda-margem-tab-pane" type="button" role="tab" aria-controls="esquerda-tab-pane" aria-selected="false">Margens</button>
+                    </li>                  
+                  </ul>
+
+                  <div class="tab-content" id="myTabContent2">
+                
+                    <!-- Sub Aba Pulsos da esquerda -->               
+                    <div class="tab-pane fade show active" id="esquerda-pulso-tab-pane" role="tabpanel" aria-labelledby="esquerda-pulso-tab-pane" tabindex="0">                
+                      
+                      <br>
+
+                      <div class="row">     
+                    
+                        <div class="col-4" style="text-align:center;">
+                          <h3>SUBIDA</h3>
+                        </div>
+      
+                        <div class="col-4" style="text-align:center;">
+                          <h3>DESCIDA</h3>
+                        </div>
+      
+                        <div class="col-4" style="text-align:center;">
+                          <h3>COMPENSAÇÕES</h3>
+                        </div>
+      
+                        <!-- Pulso Subida -->
+                        <div class="col-4">
+                          <label for="t_subida_esquerda" class="form-label">Pulso Subida</label>
+                          <input type="number" class="form-control" id="t_subida_esquerda" placeholder="Pulso de Subida" name="t_subida_esquerda" min="0" max="10000" value="{{ v2Configuracao.t_subida_esquerda | default:"500" }}">
+                        </div>
+      
+                        <!-- Pulso Descida -->
+                        <div class="col-4">
+                          <label for="t_descida_esquerda" class="form-label">Pulso Descida</label>
+                          <input type="number" class="form-control" id="t_descida_esquerda" placeholder="Pulso Descida" name="t_descida_esquerda" min="0" max="10000" value="{{ v2Configuracao.t_descida_esquerda | default:"1000" }}">
+                        </div>
+      
+                        <!-- Compensar Negativo está ativo? -->
+                        <div class="col-2">
+                          <label for="compensar_negativo_habilitado_esquerda_1" class="form-label">Compensar Negativo Ativo?</label>
+                          <br>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="compensar_negativo_habilitado_esquerda" id="compensar_negativo_habilitado_esquerda_1" value="1" {% if v2Configuracao.compensar_negativo_habilitado_esquerda %}checked{% endif %}>
+                            <label class="form-check-label" for="compensar_negativo_habilitado_esquerda_1">
+                              Sim, está!
+                            </label>
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="compensar_negativo_habilitado_esquerda" id="compensar_negativo_habilitado_esquerda_0" value="0" {% if not v2Configuracao.compensar_negativo_habilitado_esquerda %}checked{% endif %} >
+                            <label class="form-check-label" for="compensar_negativo_habilitado_esquerda_0">
+                              Não está!
+                            </label>
+                          </div>                    
+                        </div>
+      
+                        <!-- Compensar Negativo -->
+                        <div class="col-2">
+                          <label for="compensar_negativo_esquerda" class="form-label">Compensar Negativo</label>
+                          <input type="number" class="form-control" id="compensar_negativo_esquerda" placeholder="Compensar Negativo" name="compensar_negativo_esquerda" min="0" max="100" value="{{ v2Configuracao.compensar_negativo_esquerda | default:"10" }}">
+                        </div>
+      
+                        <hr class="mt-4">
+      
+                        <!-- Duty Mínimo Subida -->
+                        <div class="col-4">
+                          <label for="duty_subida_min_esquerda" class="form-label">Duty mínimo(%)</label>
+                          <input type="number" class="form-control" id="duty_subida_min_esquerda" placeholder="Pulso Mínimo %" name="duty_subida_min_esquerda" min="0" max="100" value="{{ v2Configuracao.duty_subida_min_esquerda | default:"25" }}">
+                        </div>
+      
+                        <!-- Duty Mínimo Descida -->
+                        <div class="col-4">
+                          <label for="duty_descida_min_esquerda" class="form-label">Duty mínimo(%)</label>
+                          <input type="number" class="form-control" id="duty_descida_min_esquerda" placeholder="Pulso Mínimo %" name="duty_descida_min_esquerda" min="0" max="100" value="{{ v2Configuracao.duty_descida_min_esquerda | default:"15" }}">
+                        </div>                  
+      
+                        <hr class="mt-4">
+      
+                        <!-- Duty Máximo Subida -->
+                        <div class="col-4">
+                          <label for="duty_subida_max_esquerda" class="form-label">Duty máximo(%)</label>
+                          <input type="number" class="form-control" id="duty_subida_max_esquerda" placeholder="Pulso máximo %" name="duty_subida_max_esquerda" min="0" max="100" value="{{ v2Configuracao.duty_subida_max_esquerda | default:"80" }}">
+                        </div>
+      
+                        <!-- Duty Máximo Descida -->
+                        <div class="col-4">
+                          <label for="duty_descida_max_esquerda" class="form-label">Duty máximo(%)</label>
+                          <input type="number" class="form-control" id="duty_descida_max_esquerda" placeholder="Pulso máximo %" name="duty_descida_max_esquerda" min="0" max="100" value="{{ v2Configuracao.duty_descida_max_esquerda | default:"40" }}">
+                        </div>                  
+      
+                        <!-- Compensar Positivo está ativo? -->
+                        <div class="col-2">
+                          <label for="compensar_positivo_habilitado_esquerda_1" class="form-label">Compensar Positivo Ativo?</label>
+                          <br>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="compensar_positivo_habilitado_esquerda" id="compensar_positivo_habilitado_esquerda_1" value="1" {% if v2Configuracao.compensar_positivo_habilitado_esquerda %}checked{% endif %}>
+                            <label class="form-check-label" for="compensar_positivo_habilitado_esquerda_1">
+                              Sim, está!
+                            </label>
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="compensar_positivo_habilitado_esquerda" id="compensar_positivo_habilitado_esquerda_0" value="0" {% if not v2Configuracao.compensar_positivo_habilitado_esquerda %}checked{% endif %}>
+                            <label class="form-check-label" for="compensar_positivo_habilitado_esquerda_0">
+                              Não está!
+                            </label>
+                          </div>                    
+                        </div>
+      
+                        <!-- Compensar Positivo -->
+                        <div class="col-2">
+                          <label for="compensar_positivo_esquerda" class="form-label">Compensar Positivo</label>
+                          <input type="number" class="form-control" id="compensar_positivo_esquerda" placeholder="Compensar Positivo" name="compensar_positivo_esquerda" min="0" max="100" value="{{ v2Configuracao.compensar_positivo_esquerda | default:"30"}}">
+                        </div>
+      
+                        <hr class="mt-4">    
+                      </div> 
+
+                    </div><!-- Fim Aba esquerda PULSOS -->
+
+                    <!-- Aba esquerda Margens -->
+                    <div class="tab-pane fade" id="esquerda-margem-tab-pane" role="tabpanel" aria-labelledby="esquerda-margem-tab-pane" tabindex="0">                
+                      
+                      <br>
+
+                      <div class="row">                                                                                                        
+                        
+                        <div class="col-4" style="text-align:center;">
+                          <h3>Modo 1</h3>
+                        </div>
+      
+                        <div class="col-4" style="text-align:center;">
+                          <h3>Modo 2</h3>
+                        </div>
+      
+                        <div class="col-4" style="text-align:center;">
+                          <h3>Modo 3</h3>
+                        </div>
+      
+                        <!-- Margem Superior Externo -->
+                        <div class="col-4">
+                          <label for="margem_superior_ext_one_esquerda" class="form-label">Margem Superior Externo</label>
+                          <input type="number" class="form-control" id="margem_superior_ext_one_esquerda" placeholder="Margem Superior Externo" name="margem_superior_ext_one_esquerda" min="0" max="300" value="{{ v2Configuracao.margem_superior_ext_one_esquerda | default:"45"}}">
+                        </div>
+      
+                        <!-- Margem Superior Externo -->
+                        <div class="col-4">
+                          <label for="margem_superior_ext_two_esquerda" class="form-label">Margem Superior Externo</label>
+                          <input type="number" class="form-control" id="margem_superior_ext_two_esquerda" placeholder="Margem Superior Externo" name="margem_superior_ext_two_esquerda" min="0" max="300" value="{{ v2Configuracao.margem_superior_ext_two_esquerda | default:"45"}}">
+                        </div>
+      
+                        <!-- Margem Superior Externo -->
+                        <div class="col-4">
+                          <label for="margem_superior_ext_three_esquerda" class="form-label">Margem Superior Externo</label>
+                          <input type="number" class="form-control" id="margem_superior_ext_three_esquerda" placeholder="Margem Superior Externo" name="margem_superior_ext_three_esquerda" min="0" max="300" value="{{ v2Configuracao.margem_superior_ext_three_esquerda | default:"45"}}">
+                        </div>     
+                        
+                        <hr class="mt-4">     
+                        
+                        <!-- Margem Inferior Externo -->
+                        <div class="col-4">
+                          <label for="margem_inferior_ext_one_esquerda" class="form-label">Margem Inferior Externo</label>
+                          <input type="number" class="form-control" id="margem_inferior_ext_one_esquerda" placeholder="Margem Inferior Externo" name="margem_inferior_ext_one_esquerda" min="0" max="300" value="{{ v2Configuracao.margem_inferior_ext_one_esquerda | default:"20"}}">
+                        </div>
+      
+                        <!-- Margem Inferior Externo -->
+                        <div class="col-4">
+                          <label for="margem_inferior_ext_two_esquerda" class="form-label">Margem Inferior Externo</label>
+                          <input type="number" class="form-control" id="margem_inferior_ext_two_esquerda" placeholder="Margem Inferior Externo" name="margem_inferior_ext_two_esquerda" min="0" max="300" value="{{ v2Configuracao.margem_inferior_ext_two_esquerda | default:"20"}}">
+                        </div>
+      
+                        <!-- Margem Inferior Externo -->
+                        <div class="col-4">
+                          <label for="margem_inferior_ext_three_esquerda" class="form-label">Margem Inferior Externo</label>
+                          <input type="number" class="form-control" id="margem_inferior_ext_three_esquerda" placeholder="Margem Inferior Externo" name="margem_inferior_ext_three_esquerda" min="0" max="300" value="{{ v2Configuracao.margem_inferior_ext_three_esquerda | default:"20"}}">
+                        </div>     
+                        
+                        <hr class="mt-4">     
+      
+                        <!-- Margem Inferior Interno -->
+                        <div class="col-4">
+                          <label for="margem_inferior_int_one_esquerda" class="form-label">Margem Inferior Interno</label>
+                          <input type="number" class="form-control" id="margem_inferior_int_one_esquerda" placeholder="Margem Inferior Interno" name="margem_inferior_int_one_esquerda" min="0" max="300" value="{{ v2Configuracao.margem_inferior_int_one_esquerda | default:"60"}}">
+                        </div>
+      
+                        <!-- Margem Inferior Interno -->
+                        <div class="col-4">
+                          <label for="margem_inferior_int_two_esquerda" class="form-label">Margem Inferior Interno</label>
+                          <input type="number" class="form-control" id="margem_inferior_int_two_esquerda" placeholder="Margem Inferior Interno" name="margem_inferior_int_two_esquerda" min="0" max="300" value="{{ v2Configuracao.margem_inferior_int_two_esquerda | default:"60"}}">
+                        </div>
+      
+                        <!-- Margem Inferior Interno -->
+                        <div class="col-4">
+                          <label for="margem_inferior_int_three_esquerda" class="form-label">Margem Inferior Interno</label>
+                          <input type="number" class="form-control" id="margem_inferior_int_three_esquerda" placeholder="Margem Inferior Interno" name="margem_inferior_int_three_esquerda" min="0" max="300" value="{{ v2Configuracao.margem_inferior_int_three_esquerda | default:"60"}}">
+                        </div>     
+                        
+                        <hr class="mt-4">    
+                        
+                        <!-- Tempo Espera 1 -->
+                        <div class="col-4">
+                          <label for="tempo_espera_one_esquerda" class="form-label">Tempo de Espera</label>
+                          <input type="number" class="form-control" id="tempo_espera_one_esquerda" placeholder="Margem Inferior Interno" name="tempo_espera_one_esquerda" min="0" max="10000" value="{{ v2Configuracao.tempo_espera_one_esquerda | default:"1000"}}">
+                        </div>
+      
+                        <!-- Margem Inferior Interno -->
+                        <div class="col-4">
+                          <label for="tempo_espera_two_esquerda" class="form-label">Tempo de Espera</label>
+                          <input type="number" class="form-control" id="tempo_espera_two_esquerda" placeholder="Margem Inferior Interno" name="tempo_espera_two_esquerda" min="0" max="10000" value="{{ v2Configuracao.tempo_espera_two_esquerda | default:"2000"}}">
+                        </div>
+      
+                        <!-- Margem Inferior Interno -->
+                        <div class="col-4">
+                          <label for="tempo_espera_three_esquerda" class="form-label">Tempo de Espera</label>
+                          <input type="number" class="form-control" id="tempo_espera_three_esquerda" placeholder="Margem Inferior Interno" name="tempo_espera_three_esquerda" min="0" max="10000" value="{{ v2Configuracao.tempo_espera_three_esquerda | default:"3000"}}">
+                        </div>     
+                        
+                        <hr class="mt-4">                   
+      
+                      </div> <!-- Fim ROW -->   
+
+
+                    </div><!-- FIM Aba Esquerda Margens -->
+
+                  </div>                                  
+
+
+
+              </div>
+
+              <!-- Aba do Quadro -->
+              <div class="tab-pane fade" id="disabled-tab-pane" role="tabpanel" aria-labelledby="disabled-tab" tabindex="0">
+
+                <!-- SubMenu da Quadro -->
+                <ul class="nav nav-tabs" id="myTab2" role="tablist">              
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#quadro-pulso-tab-pane" type="button" role="tab" aria-controls="quadro-tab-pane" aria-selected="true">Pulsos</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#quadro-margem-tab-pane" type="button" role="tab" aria-controls="quadro-tab-pane" aria-selected="false">Margens</button>
+                  </li>                  
+                </ul>
+
+                <div class="tab-content" id="myTabContent2">
+              
+                  <!-- Sub Aba Pulsos da quadro -->               
+                  <div class="tab-pane fade show active" id="quadro-pulso-tab-pane" role="tabpanel" aria-labelledby="quadro-pulso-tab-pane" tabindex="0">                
+                    
+                    <br>
+
+                    <div class="row">     
+                  
+                      <div class="col-4" style="text-align:center;">
+                        <h3>SUBIDA</h3>
+                      </div>
+    
+                      <div class="col-4" style="text-align:center;">
+                        <h3>DESCIDA</h3>
+                      </div>
+    
+                      <div class="col-4" style="text-align:center;">
+                        <h3>COMPENSAÇÕES</h3>
+                      </div>
+    
+                      <!-- Pulso Subida -->
+                      <div class="col-4">
+                        <label for="t_subida_quadro" class="form-label">Pulso Subida</label>
+                        <input type="number" class="form-control" id="t_subida_quadro" placeholder="Pulso de Subida" name="t_subida_quadro" min="0" max="10000" value="{{ v2Configuracao.t_subida_quadro | default:"500" }}">
+                      </div>
+    
+                      <!-- Pulso Descida -->
+                      <div class="col-4">
+                        <label for="t_descida_quadro" class="form-label">Pulso Descida</label>
+                        <input type="number" class="form-control" id="t_descida_quadro" placeholder="Pulso Descida" name="t_descida_quadro" min="0" max="10000" value="{{ v2Configuracao.t_descida_quadro | default:"1000" }}">
+                      </div>
+    
+                      <!-- Compensar Negativo está ativo? -->
+                      <div class="col-2">
+                        <label for="compensar_negativo_habilitado_quadro_1" class="form-label">Compensar Negativo Ativo?</label>
+                        <br>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="compensar_negativo_habilitado_quadro" id="compensar_negativo_habilitado_quadro_1" value="1" {% if v2Configuracao.compensar_negativo_habilitado_quadro %}checked{% endif %}>
+                          <label class="form-check-label" for="compensar_negativo_habilitado_quadro_1">
+                            Sim, está!
+                          </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="compensar_negativo_habilitado_quadro" id="compensar_negativo_habilitado_quadro_0" value="0" {% if not v2Configuracao.compensar_negativo_habilitado_quadro %}checked{% endif %} >
+                          <label class="form-check-label" for="compensar_negativo_habilitado_quadro_0">
+                            Não está!
+                          </label>
+                        </div>                    
+                      </div>
+    
+                      <!-- Compensar Negativo -->
+                      <div class="col-2">
+                        <label for="compensar_negativo_quadro" class="form-label">Compensar Negativo</label>
+                        <input type="number" class="form-control" id="compensar_negativo_quadro" placeholder="Compensar Negativo" name="compensar_negativo_quadro" min="0" max="100" value="{{ v2Configuracao.compensar_negativo_quadro | default:"10" }}">
+                      </div>
+    
+                      <hr class="mt-4">
+    
+                      <!-- Duty Mínimo Subida -->
+                      <div class="col-4">
+                        <label for="duty_subida_min_quadro" class="form-label">Duty mínimo(%)</label>
+                        <input type="number" class="form-control" id="duty_subida_min_quadro" placeholder="Pulso Mínimo %" name="duty_subida_min_quadro" min="0" max="100" value="{{ v2Configuracao.duty_subida_min_quadro | default:"25" }}">
+                      </div>
+    
+                      <!-- Duty Mínimo Descida -->
+                      <div class="col-4">
+                        <label for="duty_descida_min_quadro" class="form-label">Duty mínimo(%)</label>
+                        <input type="number" class="form-control" id="duty_descida_min_quadro" placeholder="Pulso Mínimo %" name="duty_descida_min_quadro" min="0" max="100" value="{{ v2Configuracao.duty_descida_min_quadro | default:"15" }}">
+                      </div>                  
+    
+                      <hr class="mt-4">
+    
+                      <!-- Duty Máximo Subida -->
+                      <div class="col-4">
+                        <label for="duty_subida_max_quadro" class="form-label">Duty máximo(%)</label>
+                        <input type="number" class="form-control" id="duty_subida_max_quadro" placeholder="Pulso máximo %" name="duty_subida_max_quadro" min="0" max="100" value="{{ v2Configuracao.duty_subida_max_quadro | default:"80" }}">
+                      </div>
+    
+                      <!-- Duty Máximo Descida -->
+                      <div class="col-4">
+                        <label for="duty_descida_max_quadro" class="form-label">Duty máximo(%)</label>
+                        <input type="number" class="form-control" id="duty_descida_max_quadro" placeholder="Pulso máximo %" name="duty_descida_max_quadro" min="0" max="100" value="{{ v2Configuracao.duty_descida_max_quadro | default:"40" }}">
+                      </div>                  
+    
+                      <!-- Compensar Positivo está ativo? -->
+                      <div class="col-2">
+                        <label for="compensar_positivo_habilitado_quadro_1" class="form-label">Compensar Positivo Ativo?</label>
+                        <br>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="compensar_positivo_habilitado_quadro" id="compensar_positivo_habilitado_quadro_1" value="1" {% if v2Configuracao.compensar_positivo_habilitado_quadro %}checked{% endif %}>
+                          <label class="form-check-label" for="compensar_positivo_habilitado_quadro_1">
+                            Sim, está!
+                          </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="compensar_positivo_habilitado_quadro" id="compensar_positivo_habilitado_quadro_0" value="0" {% if not v2Configuracao.compensar_positivo_habilitado_quadro %}checked{% endif %}>
+                          <label class="form-check-label" for="compensar_positivo_habilitado_quadro_0">
+                            Não está!
+                          </label>
+                        </div>                    
+                      </div>
+    
+                      <!-- Compensar Positivo -->
+                      <div class="col-2">
+                        <label for="compensar_positivo_quadro" class="form-label">Compensar Positivo</label>
+                        <input type="number" class="form-control" id="compensar_positivo_quadro" placeholder="Compensar Positivo" name="compensar_positivo_quadro" min="0" max="100" value="{{ v2Configuracao.compensar_positivo_quadro | default:"30"}}">
+                      </div>
+    
+                      <hr class="mt-4">    
+                    </div> 
+
+                  </div><!-- Fim Aba quadro PULSOS -->
+
+                  <!-- Aba quadro Margens -->
+                  <div class="tab-pane fade" id="quadro-margem-tab-pane" role="tabpanel" aria-labelledby="quadro-margem-tab-pane" tabindex="0">                
+                    
+                    <br>
+
+                    <div class="row">                                                                                                        
+                      
+                      <div class="col-4" style="text-align:center;">
+                        <h3>Modo 1</h3>
+                      </div>
+    
+                      <div class="col-4" style="text-align:center;">
+                        <h3>Modo 2</h3>
+                      </div>
+    
+                      <div class="col-4" style="text-align:center;">
+                        <h3>Modo 3</h3>
+                      </div>
+    
+                      <!-- Margem Superior Externo -->
+                      <div class="col-4">
+                        <label for="margem_superior_ext_one_quadro" class="form-label">Margem Superior Externo</label>
+                        <input type="number" class="form-control" id="margem_superior_ext_one_quadro" placeholder="Margem Superior Externo" name="margem_superior_ext_one_quadro" min="0" max="300" value="{{ v2Configuracao.margem_superior_ext_one_quadro | default:"45"}}">
+                      </div>
+    
+                      <!-- Margem Superior Externo -->
+                      <div class="col-4">
+                        <label for="margem_superior_ext_two_quadro" class="form-label">Margem Superior Externo</label>
+                        <input type="number" class="form-control" id="margem_superior_ext_two_quadro" placeholder="Margem Superior Externo" name="margem_superior_ext_two_quadro" min="0" max="300" value="{{ v2Configuracao.margem_superior_ext_two_quadro | default:"45"}}">
+                      </div>
+    
+                      <!-- Margem Superior Externo -->
+                      <div class="col-4">
+                        <label for="margem_superior_ext_three_quadro" class="form-label">Margem Superior Externo</label>
+                        <input type="number" class="form-control" id="margem_superior_ext_three_quadro" placeholder="Margem Superior Externo" name="margem_superior_ext_three_quadro" min="0" max="300" value="{{ v2Configuracao.margem_superior_ext_three_quadro | default:"45"}}">
+                      </div>     
+                      
+                      <hr class="mt-4">     
+                      
+                      <!-- Margem Inferior Externo -->
+                      <div class="col-4">
+                        <label for="margem_inferior_ext_one_quadro" class="form-label">Margem Inferior Externo</label>
+                        <input type="number" class="form-control" id="margem_inferior_ext_one_quadro" placeholder="Margem Inferior Externo" name="margem_inferior_ext_one_quadro" min="0" max="300" value="{{ v2Configuracao.margem_inferior_ext_one_quadro | default:"20"}}">
+                      </div>
+    
+                      <!-- Margem Inferior Externo -->
+                      <div class="col-4">
+                        <label for="margem_inferior_ext_two_quadro" class="form-label">Margem Inferior Externo</label>
+                        <input type="number" class="form-control" id="margem_inferior_ext_two_quadro" placeholder="Margem Inferior Externo" name="margem_inferior_ext_two_quadro" min="0" max="300" value="{{ v2Configuracao.margem_inferior_ext_two_quadro | default:"20"}}">
+                      </div>
+    
+                      <!-- Margem Inferior Externo -->
+                      <div class="col-4">
+                        <label for="margem_inferior_ext_three_quadro" class="form-label">Margem Inferior Externo</label>
+                        <input type="number" class="form-control" id="margem_inferior_ext_three_quadro" placeholder="Margem Inferior Externo" name="margem_inferior_ext_three_quadro" min="0" max="300" value="{{ v2Configuracao.margem_inferior_ext_three_quadro | default:"20"}}">
+                      </div>     
+                      
+                      <hr class="mt-4">     
+    
+                      <!-- Margem Inferior Interno -->
+                      <div class="col-4">
+                        <label for="margem_inferior_int_one_quadro" class="form-label">Margem Inferior Interno</label>
+                        <input type="number" class="form-control" id="margem_inferior_int_one_quadro" placeholder="Margem Inferior Interno" name="margem_inferior_int_one_quadro" min="0" max="300" value="{{ v2Configuracao.margem_inferior_int_one_quadro | default:"60"}}">
+                      </div>
+    
+                      <!-- Margem Inferior Interno -->
+                      <div class="col-4">
+                        <label for="margem_inferior_int_two_quadro" class="form-label">Margem Inferior Interno</label>
+                        <input type="number" class="form-control" id="margem_inferior_int_two_quadro" placeholder="Margem Inferior Interno" name="margem_inferior_int_two_quadro" min="0" max="300" value="{{ v2Configuracao.margem_inferior_int_two_quadro | default:"60"}}">
+                      </div>
+    
+                      <!-- Margem Inferior Interno -->
+                      <div class="col-4">
+                        <label for="margem_inferior_int_three_quadro" class="form-label">Margem Inferior Interno</label>
+                        <input type="number" class="form-control" id="margem_inferior_int_three_quadro" placeholder="Margem Inferior Interno" name="margem_inferior_int_three_quadro" min="0" max="300" value="{{ v2Configuracao.margem_inferior_int_three_quadro | default:"60"}}">
+                      </div>     
+                      
+                      <hr class="mt-4">    
+                      
+                      <!-- Tempo Espera 1 -->
+                      <div class="col-4">
+                        <label for="tempo_espera_one_quadro" class="form-label">Tempo de Espera</label>
+                        <input type="number" class="form-control" id="tempo_espera_one_quadro" placeholder="Margem Inferior Interno" name="tempo_espera_one_quadro" min="0" max="10000" value="{{ v2Configuracao.tempo_espera_one_quadro | default:"1000"}}">
+                      </div>
+    
+                      <!-- Margem Inferior Interno -->
+                      <div class="col-4">
+                        <label for="tempo_espera_two_quadro" class="form-label">Tempo de Espera</label>
+                        <input type="number" class="form-control" id="tempo_espera_two_quadro" placeholder="Margem Inferior Interno" name="tempo_espera_two_quadro" min="0" max="10000" value="{{ v2Configuracao.tempo_espera_two_quadro | default:"2000"}}">
+                      </div>
+    
+                      <!-- Margem Inferior Interno -->
+                      <div class="col-4">
+                        <label for="tempo_espera_three_quadro" class="form-label">Tempo de Espera</label>
+                        <input type="number" class="form-control" id="tempo_espera_three_quadro" placeholder="Margem Inferior Interno" name="tempo_espera_three_quadro" min="0" max="10000" value="{{ v2Configuracao.tempo_espera_three_quadro | default:"3000"}}">
+                      </div>     
+                      
+                      <hr class="mt-4">                   
+    
+                    </div> <!-- Fim ROW -->   
+
+
+                  </div><!-- FIM Aba quadro Margens -->
+
+                </div>    
+                  
+
+              </div>
+            </div>                        
+
+            <div class="col-lg-12">
+              <div class="col-lg-11 col-xs-12">
+                <button type="submit" class="btn btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy2-fill" viewBox="0 0 16 16">
+                    <path d="M12 2h-2v3h2z"/>
+                    <path d="M1.5 0A1.5 1.5 0 0 0 0 1.5v13A1.5 1.5 0 0 0 1.5 16h13a1.5 1.5 0 0 0 1.5-1.5V2.914a1.5 1.5 0 0 0-.44-1.06L14.147.439A1.5 1.5 0 0 0 13.086 0zM4 6a1 1 0 0 1-1-1V1h10v4a1 1 0 0 1-1 1zM3 9h10a1 1 0 0 1 1 1v5H2v-5a1 1 0 0 1 1-1"/>
+                  </svg> Salvar
+                </button>
+                
+                {% if automation_type != 0 %}
+                <a href="{% url 'V2IndexView' automation_type %}" class="btn btn-secondary">
+                  <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+                {% else %}
+                <a href="{% url 'ViagemIndexView' %}" class="btn btn-secondary">
+                  <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+                {% endif %}
+
+                <a href="#" class="btn btn-success disabled">
+                  <i class="bi bi-clipboard"></i> Copiar Da Esquerda <i class="bi bi-arrow-right"></i> Direita
+                </a>
+
+                <a href="#" class="btn btn-success disabled">
+                  <i class="bi bi-clipboard"></i> Copiar Da Direita <i class="bi bi-arrow-right"></i> Esquerda
+                </a>
+
+
+              </div>
+              
+            </div>
+
+          </form><!-- Vertical Form -->
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
+{% endblock %}

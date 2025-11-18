@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Automações - HU - Lista{% endblock %}
+
+
+{% block body %}
+<div id="appHuList">
+
+  <endpoint id="endpoint-save" data-url="{% url 'AutomationEditHUSaveAction' %}"></endpoint>
+  <endpoint id="endpoint-send-mqtt" data-url="{% url 'AutomationSendToMqttAction' %}"></endpoint>
+  <data id="hus" data-hus='{{ hus|safe }}'></data>
+  <data id="address" data-address='{{ endereco|safe }}'></data>
+  <data id="city" data-city='{{ cidade|safe }}'></data>
+  <data id="users_app" data-users_app='{{ users_app|safe }}'></data>
+
+  <div class="pagetitle">
+    <h1>Automação</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item">Automação</li>
+        <li class="breadcrumb-item">{{ automation.company.nome_fantasia | capfirst }}</li>
+        <li class="breadcrumb-item active">Unidade Habitacional</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+
+  <section class="section dashboard">
+    <div class="row" v-if="hus && hus.length > 0">
+      <table class="table">
+          <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Apartamento</th>
+            <th scope="col">Responsável</th>
+            <th scope="col">Keys</th>
+            <th scope="col">Criado em</th>
+            <th scope="col">Ações</th>
+          </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(hu,index) in hus">
+              <td>${ hu.id }$</td>
+              <td>${ hu.description }$</td>
+              <td>${ hu.name }$</td>
+              <td>${ hu.keys }$</td>
+              <td>${ hu.created_at }$</td>
+              <td>
+                <!-- Menu de Ações -->
+                <div class="btn-group">
+                  <button type="button" class="btn btn-primary">Opções</button>
+                  <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="visually-hidden">Opções</span>
+                  </button>
+                  <ul class="dropdown-menu">
+
+                    <li>
+                      <a class="dropdown-item" href="{% url 'AutomationEditView' 3 %}"><i class="bi bi-sliders"></i> Editar</a>
+                    </li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <li>
+                      <a class="dropdown-item" href="#" @click.once="deleteConfirm('{% url 'AutomationDeleteHUAction' '__pk__'  %}', hu.id)">
+                        <i class="bi bi-x-circle"></i> Excluir
+                      </a>
+                    </li>
+
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+
+
+
+      <div class="col-lg-12">
+        <a href="#" class="btn btn-primary" @click="openModalNewHU">
+          <i class="bx bxs-plus-circle"></i> Nova Unidade Habitacional
+        </a>
+
+        <a href="#" class="btn btn-danger" @click="sendToAutomation" v-show="!saving && hus && hus.length > 0">
+          <i class="bi bi-send"></i> Atualizar automação (MQTT)
+        </a>
+
+        <div class="spinner-border" role="status" v-show="saving">
+          <span class="sr-only"></span>
+        </div>
+
+
+        <a href="{% url 'AutomationIndexView' %}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+
+      </div>
+    </div>
+
+    <div class="row" v-else>
+      <div class="alert alert-danger" role="alert">
+        Não há dados!
+      </div>
+    </div>
+  </section>
+
+  <div class="modal" tabindex="-1" role="dialog" id="modal-new-hu">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Nova HU</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="closeModalNewHU">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+
+          <form>
+            <input type="hidden" id="automacao_id" value="{{ automation.id }}" />
+            <div class="form-group">
+              <label for="description">Apartamento</label>
+              <input type="text" class="form-control" id="description" aria-describedby="descriptionHelper" placeholder="5 dígitos" v-model="description" maxlength="5">
+            </div>
+            <div class="form-group">
+              <label for="description">Usuário</label>
+              <select v-model="user_app" required class="form-control" id="selUserApp">
+                <option value="0">Selecione...</option>
+                <option v-for="u in users_app" :value="u.pk" :key="u.fields.id">${ u.pk }$ - ${ u.fields.name }$</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="description">Keys</label>
+              <textarea class="form-control" id="keys" placeholder="Palavras Chaves para os entregadores" v-model="keys" maxlength="31"></textarea>
+            </div>
+          </form>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" @click="saveData" v-show="btnAddEnable && !saving && user_app != '0'">
+              <i class="bi bi-folder-plus"></i> Adicionar
+          </button>
+          <div class="spinner-border" role="status" v-show="saving">
+            <span class="sr-only"></span>
+          </div>
+
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="closeModalNewHU">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/Automation/hu_list.js' %}"></script>
+{% endblock %}

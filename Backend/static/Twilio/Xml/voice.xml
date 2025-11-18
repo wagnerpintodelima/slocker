@@ -1,0 +1,4 @@
+<Response>
+    <Say voice="woman">Você tem chamada no interfone, abra seu app!</Say>
+    <Play>https://slock.com.br/static/Twilio/Audio/twilio_call.mp3</Play>
+</Response>

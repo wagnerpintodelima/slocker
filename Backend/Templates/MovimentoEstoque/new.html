@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Movimento de Estoque - Auten PRO{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Movimento de Estoque</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Movimento de Estoque</li>
+      <li class="breadcrumb-item active">Novo</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cadastro</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'MovimentoEstoqueSaveAction' %}" enctype="multipart/form-data">
+            
+            {% csrf_token %}
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Produto (*)</label>
+              <br>
+              <select name="produto_id" required class="form-control select2">                                
+                <option value="0">Selecione</option>             
+                {% for p in produtos %}
+                <option value="{{ p.id }}">{{ p.descricao }}</option>      
+                {% endfor %}
+              </select>
+            </div> 
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Tipo (*)</label>
+              <br>
+              <select name="tipo" required class="form-control select2">                                
+                <option value="0">Selecione</option>             
+                {% for tp in TIPO_MOV_ESTOQUE_CHOICES %}
+                <option value="{{ tp.0 }}">{{ tp.1 }}</option>      
+                {% endfor %}
+              </select>
+            </div> 
+            
+            <div class="col-lg-6">
+              <label for="inputNanme10" class="form-label">Quantidade (*)</label>
+              <input type="text" class="form-control" id="inputNanme10" placeholder="Quantidade" name="quantidade" min="0" required>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme1" class="form-label">Descrição(*)</label>
+              <textarea name="descricao" placeholder="Qual o motivo?" class="form-control" required></textarea>
+            </div>            
+
+            <div class="col-lg-12">
+              <div class="col-lg-11 col-xs-12">
+                
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>                
+                
+                <a href="{% url 'MovimentoEstoqueIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+
+              </div>
+              
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+{% comment %}
+<!-- <script src="{% static 'backend/js/MovimentoEstoque/new.js' %}"></script> {% endcomment %} -->
+{% endblock %}

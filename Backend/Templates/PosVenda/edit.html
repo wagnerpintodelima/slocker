@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pós Vendas - Editar{% endblock %}
+
+{% block css %}
+<link href="https://unpkg.com/gijgo@1.9.14/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Pós Vendas</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Pós Vendas</li>
+      <li class="breadcrumb-item">{{ item.viagem_instalacao.viagem.cliente_auten.nome }}</li>
+      <li class="breadcrumb-item active">Editando...</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard" id="appEditPosVendas">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">{{ item.viagem_instalacao.viagem.cliente_auten.telefone }}</h5>          
+
+          <form class="row g-3" method="POST" action="{% url 'PosVendaEditAction' item.id %}" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <div v-show="showOS">
+
+              <h5>Saiu no dia {{ item.viagem_instalacao.viagem.data_saida }} e voltou no dia {{ item.viagem_instalacao.viagem.data_chegada }}</h5>
+              <h5>Foi instalado pelo técnico {{ item.viagem_instalacao.viagem.tecnico.nome }} </h5>
+              <h5>Local {{ item.viagem_instalacao.viagem.cliente_auten.cidade }} no {{ item.viagem_instalacao.viagem.cliente_auten.uf }} </h5>
+
+              <hr>
+
+              <div class="col-lg-12">
+                <label for="inputNanme15" class="form-label">Ordem de Serviço</label>
+                <textarea class="form-control" rows="10"  id="inputNanme15" disabled>{{ item.viagem_instalacao.job }}</textarea>
+              </div>
+  
+              <div class="col-lg-12 mt-4">
+                <label for="inputNanme15" class="form-label">Descrição do Técnico na volta da viagem</label>
+                <textarea class="form-control" rows="10" id="inputNanme15" disabled>{{ item.viagem_instalacao.descricao_atendimento }}</textarea>
+              </div>
+  
+              <hr>
+            </div>            
+
+            <div class="col-lg-12">
+              <label for="inputNanme15" class="form-label">O que o cliente achou do atendimento?</label>
+              <textarea class="form-control" rows="10" id="inputNanme15" placeholder="Gostou do Técnico? E a calibração?" name="descricao" v-model="descricao_atendimento">{{ item.descricao }}</textarea>
+            </div>
+
+            <div class="col-lg-12">
+              <label for="inputNanme15" class="form-label">Qual é o nível de satisfação do cliente?</label>
+              
+              <br>
+
+              <a href="#"data-bs-toggle="tooltip" data-bs-placement="top" title="Muito Insatisfeito">
+                <img src="#" alt="Muito Insatisfeito" width="25px" class="star" 
+                @mouseenter="hover1 = true"
+                @mouseleave="hover1 = false"
+                @click="selSatisfacao(0)"
+                :src="satisfacao == 0 ? '{% static 'backend/img/star.png' %}' :
+                hover1
+                  ? '{% static 'backend/img/star.png' %}'
+                  : '{% static 'backend/img/star_line.png' %}'"/>                
+              </a>
+
+              <a href="#"data-bs-toggle="tooltip" data-bs-placement="top" title="Insatisfeito">
+                <img src="#" alt="Insatisfeito" width="25px" class="star"
+                @mouseenter="hover2 = true"
+                @mouseleave="hover2 = false"
+                @click="selSatisfacao(1)"
+                :src="satisfacao == 1 ? '{% static 'backend/img/star.png' %}' :
+                hover2
+                  ? '{% static 'backend/img/star.png' %}'
+                  : '{% static 'backend/img/star_line.png' %}'"/>                               
+              </a>
+
+              <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Neutro">
+                <img src="#" alt="Neutro" width="25px" class="star"
+                @mouseenter="hover3 = true"
+                @mouseleave="hover3 = false"
+                @click="selSatisfacao(2)"
+                :src="satisfacao == 2 ? '{% static 'backend/img/star.png' %}' :
+                hover3
+                  ? '{% static 'backend/img/star.png' %}'
+                  : '{% static 'backend/img/star_line.png' %}'"/>                
+              </a>
+
+              <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Satisfeito">
+                <img src="#" alt="Satisfeito" width="25px" class="star"
+                @mouseenter="hover4 = true"
+                @mouseleave="hover4 = false"
+                @click="selSatisfacao(3)"
+                :src="satisfacao == 3 ? '{% static 'backend/img/star.png' %}' :
+                hover4
+                  ? '{% static 'backend/img/star.png' %}'
+                  : '{% static 'backend/img/star_line.png' %}'"/>                
+              </a>
+
+              <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Muito Satisfeito">
+                <img src="#" alt="Muito Satisfeito" width="25px" class="star"
+                @mouseenter="hover5 = true"
+                @mouseleave="hover5 = false"
+                @click="selSatisfacao(4)"
+                :src="satisfacao == 4 ? '{% static 'backend/img/star.png' %}' :
+                hover5
+                  ? '{% static 'backend/img/star.png' %}'
+                  : '{% static 'backend/img/star_line.png' %}'"/>                
+              </a>
+
+              <input type="hidden" v-model="satisfacao" name="satisfacao_cliente">
+              <input type="hidden" value="{% static 'backend/img/star.png' %}" id="icon_star">
+              <input type="hidden" value="{% static 'backend/img/star_line.png' %}" id="icon_star_line">
+
+            </div>
+
+            <hr>
+
+            <div class="col-lg-12">
+              <div class="col-lg-11 col-xs-12">
+
+                <button type="submit" class="btn btn-primary" v-show="satisfacao != -1 && descricao_atendimento != null">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+
+                <a href="#" class="btn btn-success" v-show="!showOS" @click="showOS = true">
+                  <i class="bi bi-eye"></i> Mostrar Ordem de Serviço
+                </a>
+
+                <a href="#" class="btn btn-danger" v-show="showOS" @click="showOS = false">
+                  <i class="bi bi-eye-slash"></i> Esconder Ordem de Serviço
+                </a>
+                
+                <a href="{% url 'PosVendaIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+
+              </div>
+              
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/posvenda/edit.js' %}" type="text/javascript"></script>
+{% endblock %}

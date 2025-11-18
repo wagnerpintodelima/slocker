@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+<link href="https://unpkg.com/gijgo@1.9.14/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block title %}Ordem de Produção - Auten PRO{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Ordem de Produção</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Ordem de Produção</li>
+      <li class="breadcrumb-item active">Novo</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cadastro</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'OrdemProducaoSaveAction' %}" enctype="multipart/form-data">
+            
+            {% csrf_token %}                     
+
+            <div class="col-lg-4">
+              <label for="data_inicio" class="form-label">Data Início (*)</label>
+              <input type="text" class="form-control" id="data_inicio" placeholder="Data Início" name="data_inicio"
+                required>
+            </div>
+
+            <div class="col-lg-4">
+              <label for="data_entrega" class="form-label">Data Entrega (*)</label>
+              <input type="text" class="form-control" id="data_entrega" placeholder="Data Entrega" name="data_entrega"
+                required>
+            </div>
+
+            <div class="col-lg-4">
+              <label for="anexo" class="form-label">Anexo (*)</label>
+              <input type="file" class="form-control" id="anexo" placeholder="Anexo" name="anexo" required>
+            </div>
+
+            <div class="col-lg-12">
+              <label for="job" class="form-label">Ordem de Produção (*)</label>
+              <textarea name="job" id="job" placeholder="Descreva sua ordem de produção aqui!" class="form-control" rows="10" required></textarea>
+            </div>   
+
+            <div class="col-lg-12">
+              <div class="col-lg-11 col-xs-12">
+                
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                
+                <a href="{% url 'OrdemProducaoIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+
+              </div>
+              
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+<script src="https://unpkg.com/gijgo@1.9.14/js/gijgo.min.js" type="text/javascript"></script>
+<script>
+  $('#data_inicio').datetimepicker({
+    footer: true,
+    modal: true,
+    format: 'dd/mm/yyyy HH:MM'
+  });
+  $('#data_entrega').datetimepicker({
+    footer: true,
+    modal: true,
+    format: 'dd/mm/yyyy HH:MM'
+  });
+</script>
+{% endblock %}

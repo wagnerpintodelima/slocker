@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Movimento de Estoque - Auten PRO{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Movimento de Estoque</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Movimento de Estoque</li>
+      <li class="breadcrumb-item active">Excluindo...</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Você está excluindo a "{{ item.get_tipo_display }}" de {{ item.quantidade }} unidades do {{ item.produto.descricao }}</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'MovimentoEstoqueDeleteAction' %}" enctype="multipart/form-data">
+            
+            {% csrf_token %}               
+            
+            
+            <input type="hidden" name="movimento_estoque_id" value="{{ item.id }}" />
+
+            <div class="col-lg-12">
+              <label for="inputNanme1" class="form-label">Motivo da exclusão(*)</label>
+              <textarea name="descricao" placeholder="Qual o motivo?" class="form-control" required></textarea>
+            </div>            
+
+            <div class="col-lg-12">
+              <div class="col-lg-11 col-xs-12">
+                
+                <button type="submit" class="btn btn-danger">
+                  <i class="bx bxs-trash"></i> Excluir
+                </button>
+                
+                <a href="{% url 'MovimentoEstoqueIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+
+              </div>
+              
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+{% comment %}
+<!-- <script src="{% static 'backend/js/MovimentoEstoque/new.js' %}"></script> {% endcomment %} -->
+{% endblock %}

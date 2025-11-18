@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Relatório Diário de Atendimentos</title>
+    <style>
+        .pull-right {
+            float: inline-end;
+        }
+
+        .nome {
+            background-color: darkkhaki;
+            height: 50px;
+            text-align: center;
+            padding-top: 25px;
+            border-radius: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Relatório Diário de Atendimentos em Atraso <span class="pull-right">{{ today }}</span></h1>
+
+    {% if dados %}
+
+    {% for item in dados %}
+
+    {% if item.chamados > 0 %}
+    <hr>
+
+    <h2 class="nome">{{ item.tecnico.nome }}</h2>
+    <p><b>Quantidade de atendimentos em aberto:</b> {{ item.calls | length }}</p>
+
+    <h3>Atendimentos</h3>
+    <hr>
+
+    {% for call in item.calls %}
+
+    <p><b>Cliente:</b> {{ call.cliente_auten.nome }} <span class="pull-right"><b>Tempo de atendimento:</b>
+            {{ call.call_at | timesince }}</span>
+    </p>
+    <p><b>Local:</b> {{ call.cliente_auten.cidade }} no {{ call.cliente_auten.uf }}</p>
+    <p><b>Data Programada para fazer a ligação:</b> {{ call.call_at }}</p>
+    <p><b>Última atualização deste atendimento:</b> {{ call.updated_at }} <span class="pull-right"><b>Tempo sem
+                novidades:</b>
+            {{ call.updated_at | timesince}}</span></p>
+    <p><b>Assunto:</b> {{ call.get_assunto_display }}</p>
+    <p><b>Qual o problema:</b>
+    <pre>{{ call.descricao }}</pre>
+    </p>
+    <p><b>O que o cliente respondeu:</b>
+    <pre>{{ call.resposta }}</pre>
+    </p>
+    <p><b>Situação do atendimento:</b> {{ call.get_status_display }}</p>
+
+    <hr>
+    <hr>
+    {% endfor %}
+    <hr>
+    {% endif %}
+    {% endfor %}
+
+    {% else %}
+    <h1>Não tem nenhum atendimento pendente!</h1>
+    {% endif %}
+
+
+</body>
+
+</html>

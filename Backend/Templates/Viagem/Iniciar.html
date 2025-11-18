@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Viagem Iniciar - Auten PRO{% endblock %}
+
+{% block css %}
+<link href="https://unpkg.com/gijgo@1.9.14/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle" id="app">
+  <h1>Viagem</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Viagem</li> 
+      <li class="breadcrumb-item">{{ item.cliente_auten.nome }}</li>
+      <li class="breadcrumb-item active">Iniciando...</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">bora!!!</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'ViagemSaveSaidaAction' item.id %}"
+            enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <div class="col-lg-6">
+              <label for="inputNanme11" class="form-label">Data Saída (*)</label>
+              <input type="text" class="form-control" id="inputNanme11" placeholder="Data Saída" name="data_saida"
+                required value="{{ item.data_saida | date:"d/m/Y H:i" }}">
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme12" class="form-label">Km Saída da Empresa</label>
+              <input type="text" class="form-control" id="inputNanme12" placeholder="Quilometragem Saída"
+                name="km_saida" value="{{ item.km_saida }}">
+            </div>
+
+            <div class="col-lg-12">
+              <label for="inputNanme15" class="form-label">Observação</label>
+              <textarea class="form-control" id="inputNanme15" placeholder="Observação"
+                name="observacao">{{ item.observacao }}</textarea>
+            </div>
+
+            <div class="col-lg-12">
+              <div class="col-lg-11 col-xs-12">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                <button type="reset" class="btn btn-danger">
+                  <i class="bx bxs-eraser"></i> Limpar
+                </button>
+                <a href="{% url 'ViagemIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+              </div>
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+<script src="https://unpkg.com/gijgo@1.9.14/js/gijgo.min.js" type="text/javascript"></script>
+<script>
+  $('#inputNanme11').datetimepicker({
+    footer: true,
+    modal: true,
+    format: 'dd/mm/yyyy HH:MM'
+  });
+  $('#inputNanme13').datetimepicker({
+    footer: true,
+    modal: true,
+    format: 'dd/mm/yyyy HH:MM'
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Clientes - Editar{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Cliente</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item active">Cliente</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cadastro</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'ClienteAutenEditAction' item.id %}">
+            {% csrf_token %}
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Nome Fantasia</label>
+              <input type="text" class="form-control" id="inputNanme5" placeholder="Nome/Razão Social" name="nome" value="{{ item.nome }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme7" class="form-label">CPF ou CNPJ</label>
+              <input type="text" class="form-control" id="inputNanme7" placeholder="CPF ou CNPJ" required
+                name="cpf_cnpj" value="{{ item.cpf_cnpj }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme9" class="form-label">Telefone</label>
+              <input type="text" class="form-control phone" id="inputNanme9" placeholder="(xx)x xxxx-xxxx"
+                name="telefone" value="{{ item.telefone }}" required>
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme8" class="form-label">CEP</label>
+              <input type="text" class="form-control cep" id="inputNanme8" placeholder="CEP" name="cep" value="{{ item.cep }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme10" class="form-label">UF</label>
+              <input type="text" class="form-control" id="inputNanme10" placeholder="UF" name="uf" value="{{ item.uf }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme11" class="form-label">Cidade</label>
+              <input type="text" class="form-control" id="inputNanme11" placeholder="Cidade" name="cidade" value="{{ item.cidade }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme13" class="form-label">Rua</label>
+              <input type="text" class="form-control" id="inputNanme13" placeholder="Rua" name="endereco" value="{{ item.endereco }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Nº</label>
+              <input type="text" class="form-control" id="inputNanme14" placeholder="Número" name="numero" value="{{ item.numero }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme15" class="form-label">Observação</label>
+              <textarea class="form-control" id="inputNanme15" placeholder="Observação"
+                name="observacao_endereco">{{ item.observacao_endereco }}</textarea>
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Maps - Google
+                <a target="_blank"
+                  href="{{ item.link_gps }}">Abrir
+                  mapa em nova aba</a>
+              </label>
+              <input type="text" class="form-control" id="inputNanme14" placeholder="Link GPS MAPS" name="link_gps" value="{{ item.link_gps }}">
+              <a target="_blank"
+                  href="{{ item.link_gps }}">Ver localização</a>
+            </div>
+            <div class="col-lg-12 d-flex justify-content-end">
+              <div class="col-lg-11 col-xs-12">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                <button type="reset" class="btn btn-danger">
+                  <i class="bx bxs-eraser"></i> Limpar
+                </button>
+                <a href="{% url 'ClienteAutenIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+              </div>
+              <div class="col-lg-1 col-xs-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" {% if item.status %}checked{% endif %} name="status"
+                    value="1">
+                  <label class="form-check-label" for="flexSwitchCheckChecked">Ativo</label>
+                </div>
+              </div>
+            </div>
+          </form><!-- Vertical Form -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

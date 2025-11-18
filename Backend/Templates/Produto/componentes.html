@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Produto - Componentes{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Montando meu Produto</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item active">Meus componentes</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+  
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+
+      <!-- Vertical Form -->
+      <form class="row g-3" method="POST" action="{% url 'ProdutoComponentsSaveAction' produtoComposto.id %}" enctype="multipart/form-data">
+            
+        {% csrf_token %}
+
+        <div class="col-lg-4">
+          <label for="produto" class="form-label">Produto (*)</label>
+          <br>
+          <select name="produto" required class="form-control select2" id="produto">                                
+            <option value="0">Selecione...</option>             
+            {% for p in produtos %}
+            <option value="{{ p.id }}">{{ p.descricao }} (Est:{{ p.quantidade_em_estoque }})</option>      
+            {% endfor %}
+          </select>
+        </div> 
+
+        <div class="col-lg-4">
+          <label for="quantidade" class="form-label">Quantidade(*)</label>
+          <input type="text" class="form-control" id="quantidade" value="1" placeholder="Quantidade" name="quantidade" required>
+        </div>        
+        
+        <div class="col-lg-4">
+          <label for="observacao" class="form-label">Observervação</label>
+          <input type="text" class="form-control" id="observacao" placeholder="Observação" name="observacao">
+        </div>
+
+        <div class="col-lg-12">
+          <div class="col-lg-11 col-xs-12">
+            
+            <button type="submit" class="btn btn-primary">
+              <i class="bx bx-plus"></i> Add item
+            </button>
+            
+            <a href="{% url 'ProdutoIndexView' %}" class="btn btn-secondary">
+              <i class="bx bx-arrow-back"></i> Voltar
+            </a>
+
+          </div>
+          
+        </div>
+      </form><!-- Vertical Form -->
+
+
+      <div class="mt-4">
+        {% if produto_composto_child %}
+        <table class="table datatable">
+          <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Código</th>
+            <th scope="col">Foto</th>
+            <th scope="col">Produto</th>
+            <th scope="col">Quantidade</th>
+            <th scope="col">Observação</th>
+            <th scope="col">Remover</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for pcc in produto_composto_child %}
+          <tr>
+            <td>
+              {{ pcc.id }}
+            </td>
+            <td>
+              {% if pcc.produto.codigo %}
+              {{ pcc.produto.codigo }}
+              {% else %}
+              #
+              {% endif %}
+            </td>          
+            <td>
+              <img src="{{ DOMAIN_ASSETS }}/produto/{{ pcc.produto.foto }}.png" alt="Foto" width="100px" loading="lazy">              
+            </td>
+            <td>{{ pcc.produto.descricao }}</td>
+            <td>{{ pcc.quantidade }}</td>          
+            <td>
+              {% if pcc.observacao %}
+              {{ pcc.observacao }}
+              {% else %}
+              #
+              {% endif %}
+            </td>                                    
+            <td>
+              <a href="{% url 'ProdutoComponentsDeleteAction' pcc.id %}" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Excluir Item
+              </a>
+            </td>
+            {% endfor %}
+          </tr>
+          </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-danger" role="alert">
+          Não há componentes ainda! Bora lá???
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+{% comment %} <script src="{% static 'backend/js/Produto/index.js' %}"></script> {% endcomment %}
+{% endblock %}

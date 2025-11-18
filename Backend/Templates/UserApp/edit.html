@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Usuário App - Editar{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Usuário App</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item active">Usuário App</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cadastro</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'UserAppEditAction' item.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="col-lg-6">
+              <label for="inputName" class="form-label">Nome</label>
+              <input type="text" class="form-control" id="inputName" placeholder="Nome completo" required name="name" value="{{ item.name }}">
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputName" class="form-label">Unidade Habitacional</label>
+              <input type="text" class="form-control" id="inputName" placeholder="Igual ao interfone. exemplo: 112"
+                required name="hu" value={{ item.hu }}>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputPswd" class="form-label">Senha</label>
+              <input type="password" class="form-control" id="inputPswd" placeholder="Senha" required name="password" value="{{ item.password }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme6" class="form-label">E-mail</label>
+              <input type="text" class="form-control" id="inputNanme6" placeholder="E-mail" name="email" value="{{ item.email }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme7" class="form-label">CPF</label>
+              <input type="text" class="form-control cpf" id="inputNanme7" placeholder="CPF" required name="cpf" value="{{ item.cpf }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme9" class="form-label">Telefone</label>
+              <input type="text" class="form-control phone" id="inputNanme9" placeholder="(xx)x.xxxx-xxxx" name="telefone" value="{{ item.phone_number }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme8" class="form-label">CEP</label>
+              <input type="text" class="form-control cep" id="inputNanme8" placeholder="CEP" name="cep" value="{{ item.user_app_address.cep }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme10" class="form-label">UF</label>
+              <input type="text" class="form-control" id="inputNanme10" placeholder="UF" name="uf" value="{{ item.user_app_address.uf_description }}" maxlength="2">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme11" class="form-label">Cidade</label>
+              <input type="text" class="form-control" id="inputNanme11" placeholder="Cidade" name="cidade" value="{{ item.user_app_address.city }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme12" class="form-label">Bairro</label>
+              <input type="text" class="form-control" id="inputNanme12" placeholder="Bairro" name="bairro" value="{{ item.user_app_address.neighborhood }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme13" class="form-label">Rua</label>
+              <input type="text" class="form-control" id="inputNanme13" placeholder="Rua" name="rua" value="{{ item.user_app_address.street }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Nº</label>
+              <input type="text" class="form-control" id="inputNanme14" placeholder="Número" name="numero" value="{{ item.user_app_address.house_number }}">
+            </div>
+            <div class="col-lg-6">
+              <label for="inputNanme15" class="form-label">Observação</label>
+              <textarea class="form-control" id="inputNanme15" placeholder="Observação" name="observacao">{{ item.user_app_address.observation }}</textarea>
+            </div>
+            <div class="col-lg-2 col">
+              <img src="{{ DOMAIN_ASSETS }}/user_app/{{ item.picture }}.png" alt="Foto" width="150px" style="border-radius:150px;">
+            </div>
+            <div class="col-lg-6 col">
+              <label for="formFileLg1" class="form-label">Foto</label>
+              <input class="form-control form-control-lg" id="formFileLg1" type="file" name="foto">
+            </div>
+            <div class="col-lg-4">
+              <label for="signature" class="form-label">Assinatura Nextion</label>
+              <input type="text" class="form-control" id="signature" placeholder="Código Imagem assinatura Nextion" name="signature" value="{{ item.signature }}" required>
+            </div>
+            <div class="col-lg-12 d-flex justify-content-end">
+              <div class="col-lg-11 col-xs-12">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                <a href="{% url 'UserAppIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+              </div>
+              <div class="col-lg-1 col-xs-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" {% if item.status %}checked{% endif %} name="status" value="1">
+                  <label class="form-check-label" for="flexSwitchCheckChecked">Ativo</label>
+                </div>
+              </div>
+            </div>
+          </form><!-- Vertical Form -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

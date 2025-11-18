@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Carro - Auten PRO{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Carro</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Carro</li>
+      <li class="breadcrumb-item active">Novo</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cadastro</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'CarroSaveAction' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Cliente (*)</label>
+              <br>
+              <select name="empresa" required class="form-control">
+                <option value="0">Selecione</option>
+                {% for item in empresas %}
+                <option value="{{ item.id }}">{{ item.razao_social }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Marca (*)</label>
+              <br>
+              <select name="marca" required class="form-control">
+                <option value="0">Selecione</option>
+                <option>Volkswagen</option>
+                <option>Fiat</option>
+                <option>Chevrolet</option>
+                <option>Renault</option>
+                <option>Peugeot</option>
+                <option>Hyundai</option>
+              </select>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme10" class="form-label">Placa (*)</label>
+              <input type="text" class="form-control" id="inputNanme10" placeholder="Placa" name="placa" required>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Modelo (*)</label>
+              <br>
+              <select name="modelo" required class="form-control">
+                <option value="0">Selecione</option>
+                <option>Strada</option>
+                <option>Uno Way</option>
+                <option>Uno Mille</option>
+                <option>Gol</option>
+                <option>Voyage</option>
+                <option>Hyundai</option>
+              </select>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Próxima troca de Pneu</label>
+              <input type="text" class="form-control" id="inputNanme14" placeholder="Km de troca de pneu"
+                name="km_proxima_troca_pneu">
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Cor (*)</label>
+              <br>
+              <select name="cor" required class="form-control">
+                <option value="0">Selecione</option>
+                <option>Preto</option>
+                <option>Branco</option>
+                <option>Cinza</option>
+                <option>Vermelho</option>
+                <option>Azul</option>
+                <option>Rosa</option>
+              </select>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Próxima troca de óleo</label>
+              <input type="text" class="form-control" id="inputNanme14" placeholder="Km de troca de óleo"
+                name="km_proxima_troca_oleo">
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme11" class="form-label">Ano (*)</label>
+              <input type="text" class="form-control" id="inputNanme11" placeholder="Ano" name="ano" required>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Km Rodados</label>
+              <input type="text" class="form-control" id="inputNanme14" placeholder="Km rodados" name="km_rodados">
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme15" class="form-label">Observação</label>
+              <textarea class="form-control" id="inputNanme15" placeholder="Observação" name="observacao"></textarea>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme14" class="form-label">Foto (*)</label>
+              <input type="file" class="form-control" id="inputNanme14" placeholder="Foto" name="foto" required>
+            </div>
+
+            <div class="col-lg-12 d-flex justify-content-end">
+              <div class="col-lg-11 col-xs-12">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                <button type="reset" class="btn btn-danger">
+                  <i class="bx bxs-eraser"></i> Limpar
+                </button>
+                <a href="{% url 'CarroIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+              </div>
+              <div class="col-lg-1 col-xs-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked="" name="status"
+                    value="1">
+                  <label class="form-check-label" for="flexSwitchCheckChecked">Ativo</label>
+                </div>
+              </div>
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+{% comment %}
+<!-- <script src="{% static 'backend/js/Carro/new.js' %}"></script> {% endcomment %} -->
+{% endblock %}

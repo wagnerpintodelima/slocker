@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Alarm Bar - Smainex{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Alarm Bar</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Alarm Bar</li>
+      <li class="breadcrumb-item active">Novo</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cadastro</h5>
+
+          <!-- Vertical Form -->
+          <form class="row g-3" method="POST" action="{% url 'AlarmbarSaveAction' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="col-lg-6">
+              <label for="inputNanme5" class="form-label">Cliente <span class="required">(*)</span></label>
+              <br>
+              <select name="empresa" required class="form-control">
+                <option value="0">Selecione</option>
+                {% for item in empresas %}
+                <option value="{{ item.id }}">{{ item.razao_social }}</option>
+                {% endfor %}
+              </select>
+            </div>      
+            
+            <div class="col-lg-6">
+              <label for="inputNanme1" class="form-label">Descrição <span class="required">(*)</span></label>
+              <input type="text" class="form-control" id="inputNanme1" placeholder="Descrição" name="description" required>
+            </div>
+  
+            <hr>
+          
+            <div class="col-lg-6">
+              <label for="inputNanme1" class="form-label">Wifi SSID Cliente</label>
+              <input type="text" class="form-control" id="inputNanme1" placeholder="Wifi do cliente" name="wifi_ssid">
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme2" class="form-label">Wifi PSWD Cliente</label>
+              <input type="text" class="form-control" id="inputNanme2" placeholder="Senha do wifi do cliente" name="wifi_pswd">
+            </div>
+
+            <hr>
+
+            <div class="col-lg-6">
+              <label for="inputNanme3" class="form-label">Wifi SSID Automação <span class="required">(*)</span></label>
+              <input type="text" class="form-control" id="inputNanme3" placeholder="Wifi padrão SMAINEX" name="wifi_ssid_automation" value="AlarmBar-SMX" required>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme4" class="form-label">Wifi PSWD LOCAL Automação <span class="required">(*)</span></label>
+              <input type="text" class="form-control" id="inputNanme4" placeholder="Senha do Wifi Padrão SMAINEX " name="wifi_pswd_automation" value="12345678" required>
+            </div>
+
+            <hr>
+
+            <div class="col-lg-3">
+              <label for="inputNanme5" class="form-label">Tempo de Disparo - segundos <span class="required">(*)</span></label>
+              <input type="text" class="form-control" id="inputNanme5" placeholder="Tempo de Disparo (segundos)"
+                name="tempo_disparo_seg" value="15" required>
+            </div>
+
+            <div class="col-lg-3">
+              <label for="inputNanme6" class="form-label">IMU Task (ms) <span class="required">(*)</span></label>
+              <input type="text" class="form-control" id="inputNanme6" placeholder="Taxa de atualização do uC"
+                name="imu_task_ms" value="100" required>
+            </div>   
+
+            <div class="col-lg-3">
+              <label for="inputNanme60" class="form-label">Grupo <span class="required">(*)</span></label>
+              <input type="text" class="form-control" id="inputNanme60" placeholder="Grupo"
+                name="group" value="Barracão Principal" required>
+            </div>
+
+            <div class="col-lg-3">
+              <label for="inputNanme61" class="form-label">Sub-Grupo <span class="required">(*)</span></label>
+              <input type="text" class="form-control" id="inputNanme61" placeholder="SubGrupo"
+                name="subgroup" value="Corredor 1" required>
+            </div>
+            
+            <hr>
+
+            <div class="col-lg-2">
+              <label for="inputNanme7" class="form-label">Pitch Mínimo <span class="required">(*)</span></label>
+              <input type="text" class="form-control" id="inputNanme7" placeholder="Pitch Mínimo"
+                name="min_pitch" value="-15" required>
+            </div>
+
+            <div class="col-lg-2">
+              <label for="inputNanme8" class="form-label">Pitch Máximo <span class="required">(*)</span></label>
+              <input type="text" class="form-control" id="inputNanme9" placeholder="Pitch Máximo"
+                name="max_pitch" value="15" required>
+            </div>
+
+            <div class="col-lg-2">
+              <label for="inputNanme10" class="form-label">Roll Mínimo</label>
+              <input type="text" class="form-control" id="inputNanme10" placeholder="Roll Mínimo"
+                name="min_roll">
+            </div>
+
+            <div class="col-lg-2">
+              <label for="inputNanme11" class="form-label">Roll Máximo</label>
+              <input type="text" class="form-control" id="inputNanme11" placeholder="Roll Máximo"
+                name="max_roll">
+            </div>
+
+            <div class="col-lg-2">
+              <label for="inputNanme12" class="form-label">Yaw Mínimo</label>
+              <input type="text" class="form-control" id="inputNanme12" placeholder="Yaw Mínimo"
+                name="min_yaw">
+            </div>
+
+            <div class="col-lg-2">
+              <label for="inputNanme13" class="form-label">Yaw Máximo</label>
+              <input type="text" class="form-control" id="inputNanme13" placeholder="Yaw Máximo"
+                name="max_yaw">
+            </div>
+
+            <hr>      
+
+            <div class="col-lg-6">
+              <label for="inputNanme16" class="form-label">MQTT -> uC to Broker <span class="required">(*)</span></label>
+              <input type="text" class="form-control" id="inputNanme16" placeholder="MQTT uC -> Broker"
+                name="uctobroker" required>
+            </div>
+
+            <div class="col-lg-6">
+              <label for="inputNanme17" class="form-label">MQTT -> Broker to uC <span class="required">(*)</span></label>
+              <input type="text" class="form-control" id="inputNanme17" placeholder="MQTT Broker to uC"
+                name="brokertouc" required>
+            </div>               
+
+            <div class="col-lg-12 d-flex justify-content-end">
+              <div class="col-lg-11 col-xs-12">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-save"></i> Salvar
+                </button>
+                <button type="reset" class="btn btn-danger">
+                  <i class="bx bxs-eraser"></i> Limpar
+                </button>
+                <a href="{% url 'AlarmbarIndexView' %}" class="btn btn-secondary">
+                  <i class="bx bx-arrow-back"></i> Voltar
+                </a>
+              </div>
+              <div class="col-lg-1 col-xs-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked="" name="imu_ativo"
+                    value="1">
+                  <label class="form-check-label" for="flexSwitchCheckChecked">IMU Ativo?</label>
+                </div>
+              </div>
+            </div>
+          </form><!-- Vertical Form -->
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+{% comment %}
+<!-- <script src="{% static 'backend/js/Alarmbar/new.js' %}"></script> {% endcomment %} -->
+{% endblock %}

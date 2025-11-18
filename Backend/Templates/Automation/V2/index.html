@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}V2 - Lista{% endblock %}
+
+
+{% block body %}
+<div id="indexV2">
+  <div class="pagetitle">
+    <h1>V2</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+        <li class="breadcrumb-item">V2</li>
+        <li class="breadcrumb-item active">novo</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+
+  <section class="section dashboard">
+    <div class="row">
+      
+      <div class="col-lg-12">
+        {% if data %}
+        <table class="table" id="datatable">
+          <thead>
+          <tr>
+            <th scope="col">#</th>            
+            <th scope="col">Cliente</th>
+            <th scope="col">Versão</th>
+            <th scope="col">Atualizado em</th>
+            <th scope="col">Status</th>
+            <th scope="col">Ações</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for item in data %}
+          <tr>
+            <td>#{{ item.id }}</td>                        
+            <td>{{ item.automation.cliente_auten.nome | title | default:"ESTOQUE" }}</td>
+            <td>{{ item.version_current }}</td>
+            <td>
+              {% if item.updated_at %}
+              {{ item.updated_at }}
+              {% else %}
+              {{ item.created_at }}
+              {% endif %}              
+            </td>
+            <td>
+              {% if item.status %}
+              <i class="bi bi-hand-thumbs-up-fill"></i>
+              {% else %}
+              <i class="bi bi-hand-thumbs-down"></i>
+              {% endif %}
+            </td>
+            <td>
+              <!-- Menu de Ações -->
+              <div class="btn-group">
+                <button type="button" class="btn btn-primary">Opções</button>
+                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span class="visually-hidden">Opções</span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a class="dropdown-item" href="{% url 'V2EditView' automation_type item.id %}"><i class="bi bi-sliders"></i> Editar</a>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+
+                  <li>
+                    <a class="dropdown-item" href="{% url 'V2CalibrationView' automation_type item.id %}"><i class="bi bi-sliders"></i> Calibração</a>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+
+                  {% if request.user.is_superuser or request.user.id == 5 %}
+                  <li>
+                    <a class="dropdown-item" href="#" @click="deleteConfirm('{% url 'V2DeleteAction' item.id  %}')">
+                      <i class="bi bi-x-circle"></i> Excluir
+                    </a>
+                  </li>
+                  {% endif %}
+
+                </ul>
+              </div>
+            </td>
+            {% endfor %}
+          </tr>
+          </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-danger" role="alert">
+          Não há dados!
+        </div>
+        {% endif %}
+      </div>
+      
+      <div class="col-lg-12">        
+        
+        <a href="{% url 'V2NewView' automation_type %}" class="float" data-bs-toggle="tooltip" data-bs-placement="top" title="Novo">
+          +
+        </a>        
+
+        <a href="{% url 'AutomationIndexView' %}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+        
+      </div>
+
+    </div>
+  </section>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/Automation/V2/index.js' %}"></script>  
+<script src="https://cdn.datatables.net/2.2.1/js/dataTables.js"></script>
+<script src="https://cdn.datatables.net/2.2.1/js/dataTables.bootstrap5.js"></script>
+{% endblock %}

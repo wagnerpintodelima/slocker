@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Viagem Instalação - Visualizar{% endblock %}
+
+{% block css %}
+<style>
+.maquina{
+  border: 1px dashed black;
+  border-radius: 10px;
+}
+
+pre{
+  max-height: 300px;
+  overflow-y: scroll;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Viagem</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Viagem</li>
+      <li class="breadcrumb-item">Instalação</li>
+      <li class="breadcrumb-item active">Visualizar</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">E foi assim que aconteceu...</h5>
+
+          <div class="row">
+            <div class="col-7">
+              <table class="table">
+                <tr>
+                  <td>Cliente: {{ viagemInstalacao.cliente_auten.nome }}</td>              
+                </tr>
+                <tr>
+                  <td>
+                    Local: {{ viagemInstalacao.cliente_auten.cidade }}/{{ viagemInstalacao.cliente_auten.uf }}
+                  </td>              
+                </tr>
+                <tr>
+                  <td>Tipo da Instalação: {{ viagemInstalacao.get_tipo_instalacao_display }}</td>
+                </tr>
+                <tr>              
+                  <td>Máquina Modelo: {{ viagemInstalacao.get_maquina_modelo_display }}</td>
+                </tr>
+                <tr>
+                  <td>É re-trabalho? 
+                    {% if viagemInstalacao.viagem_instalacao_pai %}
+                    Sim, a viagem instalação {{ viagemInstalacao.viagem_instalacao_pai.id }} é a origem desse atendimento!
+                    {% else %}
+                    Não, é a primeira vez!
+                    {% endif %}
+                  </td>
+                </tr>            
+                <tr>
+                  <td>
+                    Foi criada pelo usuário código {{ viagemInstalacao.created_by }} no dia {{ viagemInstalacao.created_at }}
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    Foi atualizada pelo usuário código {{ viagemInstalacao.updated_by }} no dia {{ viagemInstalacao.updated_at }}
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    {% if viagemInstalacao.status %}
+                    Essa instalação já foi finalizada!
+                    {% else %}
+                    Essa instalação está pendente!
+                    {% endif %}
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="col-5" style="text-align:center;">
+              <div class="alert alert-secondary">
+                <pre>{{ viagemInstalacao.descricao_atendimento }}</pre>
+              </div>
+
+              {% if viagemInstalacao.foto_capa %}
+              <img src="{{ DOMAIN_ASSETS }}/viagem/instalacao/{{ viagemInstalacao.foto_capa }}.png" alt="Foto" width="200px" class="maquina">
+              {% else %}
+              <img src="{% static 'backend/img/not_picture.png' %}" alt="Foto" width="200px">             
+              {% endif %}
+
+            </div>
+        </div>
+        <div class="col-lg-12">
+          <a href="{% url 'ViagemInstalacaoIndexView' viagemInstalacao.viagem.id %}" class="btn btn-secondary">
+            <i class="bx bx-arrow-back"></i> Voltar
+          </a>
+        </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+<script>
+  
+</script>
+{% endblock %}

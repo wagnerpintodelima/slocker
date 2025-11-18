@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pós Vendas - Lista{% endblock %}
+
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Pós Vendas</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item active">Pós Vendas</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+  
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-12">
+      {% if data %}
+      <table class="table datatable">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Cliente</th>
+            <th scope="col">Técnico</th>
+            <th scope="col">Data Chegada Viagem</th>
+            <th scope="col">Data Ligação Programada</th>                                    
+            <th scope="col">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for pv in data %}
+        <tr>
+          <td>{{ pv.id }}</td>          
+          <td>            
+             {{ pv.viagem_instalacao.viagem.cliente_auten.nome }}
+          </td>   
+          <td>            
+            {{ pv.viagem_instalacao.viagem.tecnico.nome }}
+         </td>   
+          <td>{{ pv.viagem_instalacao.viagem.data_chegada }}</td>
+          <td>
+            {% if data_hora_atual > pv.data_programada_ligacao %}
+            <span class="badge bg-danger">{{ pv.data_programada_ligacao }}</span>
+            {% else %}
+            <span class="badge bg-success">{{ pv.data_programada_ligacao }}</span>
+            {% endif %}
+          </td>                                      
+          <td>
+            <a type="button" class="btn btn-primary" href="{% url 'PosVendaEditView' pv.id %}">
+              Atender
+            </a>
+          </td>
+          {% endfor %}
+        </tr>
+        </tbody>
+      </table>
+      {% else %}
+      <div class="alert alert-danger" role="alert">
+        Não há dados!
+      </div>
+      {% endif %}
+    </div>
+    <div class="col-lg-12">     
+      <a href="{% url 'PosVendaFilterView' %}" class="float" data-bs-toggle="tooltip" data-bs-placement="top" title="Filtrar">
+        <i class="bi bi-funnel"></i>
+      </a>    
+
+    </div>
+  </div>
+
+
+
+</section>
+{% endblock %}
+
+{% block js %}
+{% comment %} <script src="{% static 'backend/js/Carro/index.js' %}"></script> {% endcomment %}
+{% endblock %}

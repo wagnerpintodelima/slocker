@@ -1,0 +1,381 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Viagem - instalação - Montagem do Kit{% endblock %}
+
+{% block css %}
+<style>
+.maquina{
+  border: 1px dashed black;
+  border-radius: 10px;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Montando o kit de automações</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Viagem</li>
+      <li class="breadcrumb-item">Instalação</li>
+      <li class="breadcrumb-item">{{ viagem.cliente_auten.nome }}</li>
+      <li class="breadcrumb-item active">Montando o kit...</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+  
+<section class="section dashboard" id="app">
+  <div class="row">    
+
+    <form v-show="showForm" class="row g-3" method="POST" action="{% url 'ViagemInstalacaoSaveKitAction' viagemInstalacao.id %}" enctype="multipart/form-data">
+
+        {% csrf_token %}        
+
+        <!-- Central -->
+        <div class="row">
+          <hr>
+
+          <div class="d-flex">
+            <button class="btn btn-light btn-outline-dark ms-auto" @click.prevent="showForm=false"><i class="bi bi-x"></i></button>
+          </div>
+
+          <div class="col-lg-6">
+            <label for="inputNanme5" class="form-label">Central V2</label>
+            
+            <br>
+
+            <select name="v2_id" class="form-control">
+              <option value="0">Não preciso</option>
+              {% for item in v2s %}
+              <option value="{{ item.id }}">#{{ item.id }} - Versão: {{ item.version_current }} - Criada em: {{ item.created_at }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          
+          <!-- É reserva -->
+          <div class="col-6">
+            <label for="is_reserva_1" class="form-label">É reserva?</label>
+            <br>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="v2_is_reserva" id="is_reserva_1" value="1">
+              <label class="form-check-label" for="is_reserva_1">
+                Sim, vou usar como reserva!
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="v2_is_reserva" id="is_reserva_0" value="0" checked>
+              <label class="form-check-label" for="is_reserva_0">
+                Não, vai ficar instalado!
+              </label>
+            </div>                    
+          </div>
+
+          <hr class="mt-4">
+        </div>        
+
+        <!-- Tela -->
+        <div class="row">
+          <div class="col-lg-6">
+            <label for="inputNanme5" class="form-label">Tela</label>
+            <br>
+            <select name="tela_id" class="form-control">
+              <option value="0">Não preciso</option>
+              {% for item in telas %}
+              <option value="{{ item.id }}">#{{ item.id }} - Versão: {{ item.version_current }} - Criada em: {{ item.created_at }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+
+          <!-- É reserva -->
+          <div class="col-6">
+            <label for="tela_is_reserva_1" class="form-label">É reserva?</label>
+            <br>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="tela_is_reserva" id="tela_is_reserva_1" value="1">
+              <label class="form-check-label" for="tela_is_reserva_1">
+                Sim, vou usar como reserva!
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="tela_is_reserva" id="tela_is_reserva_0" value="0" checked>
+              <label class="form-check-label" for="tela_is_reserva_0">
+                Não, vai ficar instalado!
+              </label>
+            </div>                    
+          </div>
+
+          <hr class="mt-4">
+        </div>
+
+        <!-- Sensores 1 -->
+        <div class="row">
+          <div class="col-lg-6">
+            <label for="inputNanme5" class="form-label">Sensor 1</label>
+            <br>
+            <select name="sensor_id" class="form-control">
+              <option value="0">Não preciso</option>
+              {% for item in sensores %}
+              <option value="{{ item.id }}">#{{ item.id }} - Versão: {{ item.version_current }} - Criada em: {{ item.created_at }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+
+          <!-- É reserva -->
+          <div class="col-6">
+            <label for="sensor_is_reserva_1" class="form-label">É reserva?</label>
+            <br>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="sensor_is_reserva" id="sensor_is_reserva_1" value="1">
+              <label class="form-check-label" for="sensor_is_reserva_1">
+                Sim, vou usar como reserva!
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="sensor_is_reserva" id="sensor_is_reserva_0" value="0" checked>
+              <label class="form-check-label" for="sensor_is_reserva_0">
+                Não, vai ficar instalado!
+              </label>
+            </div>                    
+          </div>
+
+          <hr class="mt-4">
+        </div>
+
+        <!-- Sensores 2 -->
+        <div class="row">
+          <div class="col-lg-6">
+            <label for="inputNanme5" class="form-label">Sensor 2</label>
+            <br>
+            <select name="sensor_id_2" class="form-control">
+              <option value="0">Não preciso</option>
+              {% for item in sensores %}
+              <option value="{{ item.id }}">#{{ item.id }} - Versão: {{ item.version_current }} - Criada em: {{ item.created_at }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+
+          <!-- É reserva -->
+          <div class="col-6">
+            <label for="sensor_2_is_reserva_1" class="form-label">É reserva?</label>
+            <br>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="sensor_2_is_reserva" id="sensor_2_is_reserva_1" value="1">
+              <label class="form-check-label" for="sensor_2_is_reserva_1">
+                Sim, vou usar como reserva!
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="sensor_2_is_reserva" id="sensor_2_is_reserva_0" value="0" checked>
+              <label class="form-check-label" for="sensor_2_is_reserva_0">
+                Não, vai ficar instalado!
+              </label>
+            </div>                    
+          </div>
+
+          <hr class="mt-4">
+        </div>
+
+        <!-- Sensores 3 -->
+        <div class="row">
+          <div class="col-lg-6">
+            <label for="inputNanme5" class="form-label">Sensor 3</label>
+            <br>
+            <select name="sensor_id_3" class="form-control">
+              <option value="0">Não preciso</option>
+              {% for item in sensores %}
+              <option value="{{ item.id }}">#{{ item.id }} - Versão: {{ item.version_current }} - Criada em: {{ item.created_at }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+
+          <!-- É reserva -->
+          <div class="col-6">
+            <label for="sensor_3_is_reserva_1" class="form-label">É reserva?</label>
+            <br>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="sensor_3_is_reserva" id="sensor_3_is_reserva_1" value="1">
+              <label class="form-check-label" for="sensor_3_is_reserva_1">
+                Sim, vou usar como reserva!
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="sensor_3_is_reserva" id="sensor_3_is_reserva_0" value="0" checked>
+              <label class="form-check-label" for="sensor_3_is_reserva_0">
+                Não, vai ficar instalado!
+              </label>
+            </div>                    
+          </div>
+
+          <hr class="mt-4">
+        </div>
+
+        <!-- Sensores 4 -->
+        <div class="row">
+          <div class="col-lg-6">
+            <label for="inputNanme5" class="form-label">Sensor 4</label>
+            <br>
+            <select name="sensor_id_4" class="form-control">
+              <option value="0">Não preciso</option>
+              {% for item in sensores %}
+              <option value="{{ item.id }}">#{{ item.id }} - Versão: {{ item.version_current }} - Criada em: {{ item.created_at }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+
+          <!-- É reserva -->
+          <div class="col-6">
+            <label for="sensor_4_is_reserva_1" class="form-label">É reserva?</label>
+            <br>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="sensor_4_is_reserva" id="sensor_4_is_reserva_1" value="1">
+              <label class="form-check-label" for="sensor_4_is_reserva_1">
+                Sim, vou usar como reserva!
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="sensor_4_is_reserva" id="sensor_4_is_reserva_0" value="0" checked>
+              <label class="form-check-label" for="sensor_4_is_reserva_0">
+                Não, vai ficar instalado!
+              </label>
+            </div>                    
+          </div>
+
+          <hr class="mt-4">
+        </div>
+
+        <!-- Genérico -->
+        <div class="row">
+          <div class="col-lg-6">
+            <label for="outro" class="form-label">Outro</label>
+            <input type="text" class="form-control" id="outro" placeholder="Outra coisa mais genérica" name="outro">
+          </div>
+
+
+          <!-- É reserva -->
+          <div class="col-6">
+            <label for="outro_is_reserva_1" class="form-label">É reserva?</label>
+            <br>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="outro_is_reserva" id="outro_is_reserva_1" value="1">
+              <label class="form-check-label" for="outro_is_reserva_1">
+                Sim, vou usar como reserva!
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="outro_is_reserva" id="outro_is_reserva_0" value="0" checked>
+              <label class="form-check-label" for="outro_is_reserva_0">
+                Não, vai ficar instalado!
+              </label>
+            </div>                    
+          </div>
+
+          <hr class="mt-4">
+        </div>
+
+        <!-- Buttons of action -->
+        <div class="col-lg-12">
+          <button type="submit" class="btn btn-primary">
+            <i class="bx bxs-plus-circle"></i> Add item
+          </button>
+
+          <a href="{% url 'ViagemInstalacaoIndexView' viagem.id %}" class="btn btn-secondary">
+            <i class="bx bx-arrow-back"></i> Voltar
+          </a>
+        </div>
+
+    </form>
+
+    <hr class="mt-4">
+
+    <!-- Tabela dos itens já selecionados -->
+    <div class="col-lg-12">
+      {% if viagemInstalacaoKitChilds %}
+      <table class="table datatables">
+        <thead>
+          <tr>
+            <th scope="col">#</th>            
+            <th scope="col">Automação</th>                        
+            <th scope="col">É reserva?</th>
+            <th scope="col">Status</th>
+            <th scope="col">Criado em</th>
+            <th scope="col">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for item in viagemInstalacaoKitChilds %}
+        <tr>
+          {% comment %} # {% endcomment %}
+          <td>{{ item.id }}</td>              
+          
+          {% comment %} Automação {% endcomment %}
+          <td>
+            {% if item.v2 %}
+            V2 Cód. #{{item.v2.id}}
+            {% elif item.tela %}
+            Tela Cód. #{{item.tela.id}}
+            {% elif item.sensor %}
+            Sensor Cód. #{{item.sensor.id}}
+            {% elif item.outro %}
+            {{ item.outro }}
+            {% endif %}
+          </td>   
+
+          {% comment %} É reserva {% endcomment %}
+          <td>
+            {% if item.is_reserva %}
+            Sim!
+            {% else %}
+            Não!
+            {% endif %}
+          </td>          
+
+          <td>{{ item.get_status_display }}</td>
+
+          {% comment %} Criado em {% endcomment %}
+          <td>{{ item.created_at }}</td>
+          
+          <td>            
+            {% if item.v2 %}
+            <a class="btn btn-success" href="{% url 'V2CalibrationView' 0 item.v2.id %}" data-bs-toggle="tooltip" data-bs-title="Calibração!"> 
+              <i class="bi bi-sliders"></i> <!-- Ícone de ajuste/deslizadores -->
+            </a>    
+            {% endif %}        
+
+            <button class="btn btn-danger" @click="deleteConfirm('{% url 'ViagemInstalacaoDelKitChildAction' item.id  %}')" data-bs-toggle="tooltip" data-bs-title="Excluir item"> 
+              <i class="bi bi-trash"></i> 
+            </button>            
+
+          </td>
+          {% endfor %}
+        </tr>
+        </tbody>
+      </table>
+      {% else %}
+      <div class="alert alert-danger" role="alert">
+        Não há itens nessa instalação até o presente momento!
+      </div>
+      {% endif %}
+    </div>
+
+    <a @click="showForm=true" class="float" data-bs-toggle="tooltip" data-bs-placement="top" title="Novo">
+      +
+    </a>    
+
+  </div>
+
+
+
+</section>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/ViagemInstalacao/montar_kit.js' %}"></script>
+{% endblock %}
