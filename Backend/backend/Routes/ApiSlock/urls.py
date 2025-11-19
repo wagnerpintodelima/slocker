@@ -11,4 +11,5 @@ urlpatterns = [
     path('sync/user/app', api.userApp, name="ApiSlockUserApp"),
     path('edit/perfil/app', api.changePerfilApp, name="ApiSlockChangePassword"),
     path('sync/ping', api.ping, name="ApiSlockPing"),
+    path('reserva', api.reserva, name="ApiSlockReserva"),
 ]

@@ -12,16 +12,16 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from backend.models import HU, UserApp, Keyword, Locacao, Slot, Client, Automation, LogGate
+from backend.models import HU, UserApp, Keyword, Locacao, Slot, Client, Automation, LogGate, Reserva, Espaco, EspacoItem
 from backend.Controller.MQTTController import mqttSendDataToDevice, remover_acentos, generate_password
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.utils import timezone
 from backend.Controller.BaseController import getHash
-from slock.settings import DOMAIN_ASSETS, BASE_DIR
+from slock.settings import DOMAIN_ASSETS, BASE_DIR, TIME_ZONE
 from backend.Controller.UserAppController import _PATH_FILE_USER_APP
-from backend.Controller.BaseController import saveFileBase64
+from backend.Controller.BaseController import saveFileBase64, DateSTR2DatetimeFormat2
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -61,7 +61,7 @@ def login(request):
             key1, key2, key3 = keys
             key1_created_at, key2_created_at, key3_created_at = keys_created_at
             
-            print(f'Key1: {key1_created_at} \n Key2: {key2_created_at} \n Key3: {key3_created_at}')            
+            # print(f'Key1: {key1_created_at} \n Key2: {key2_created_at} \n Key3: {key3_created_at}')            
             
             # Tem locação ativa?
             hasLocacoes = Locacao.objects.filter(hu=userApp.hu,client=userApp.client).exists()
@@ -88,6 +88,62 @@ def login(request):
                 userApp.so = so
             
             
+            #### Reservas            
+            agora = timezone.now()
+            reservas_qs = Reserva.objects.filter(data_fim__gte=agora).order_by('-data_inicio')
+
+            reservas = []
+            for reserva in reservas_qs:
+                espaco = getattr(reserva, 'espaco', None)                
+                
+                itens_do_espaco = EspacoItem.objects.filter(espaco=espaco)
+                itens = []
+                
+                for item in itens_do_espaco:
+                    itens.append({
+                        'id': item.id,
+                        'descricao': item.descricao,
+                        'quantidade': item.quantidade
+                    })
+                
+                item = {
+                    'id': reserva.id,
+                    'espaco': {
+                        'id': espaco.id if espaco else None,
+                        'nome': espaco.nome if espaco else None,
+                        'valor_reserva': espaco.valor_reserva if espaco else None,
+                        'regras': espaco.regras if espaco else None,
+                        'itens': itens if itens else []
+                    },
+                    'data_inicio': reserva.data_inicio.strftime('%d/%m/%Y %Hh:%Mm') if reserva.data_inicio else None,
+                    'data_fim': reserva.data_fim.strftime('%d/%m/%Y %Hh:%Mm') if reserva.data_fim else None,
+                    'status': reserva.status,
+                    'created_at': reserva.created_at.strftime('%d/%m/%Y %Hh:%Mm') if reserva.created_at else None
+                }
+                reservas.append(item)
+                                        
+            # Espaços
+            espacos = Espaco.objects.all()
+            espacos_list = []
+            for espaco in espacos:
+                itens_do_espaco = EspacoItem.objects.filter(espaco=espaco)
+                itens = []
+                for item in itens_do_espaco:
+                    itens.append({
+                        'id': item.id,
+                        'descricao': item.descricao,
+                        'quantidade': item.quantidade
+                    })
+                
+                espacos_list.append({
+                    'id': espaco.id,
+                    'nome': espaco.nome,
+                    'valor_reserva': espaco.valor_reserva,
+                    'regras': espaco.regras,
+                    'itens': itens if itens else []
+                })                                        
+            
+            
             # Registra o last access do usuario
             userApp.updated_at = timezone.now()
             userApp.save()
@@ -111,7 +167,9 @@ def login(request):
                 'key1_created_at': key1_created_at,
                 'key2_created_at': key2_created_at,
                 'key3_created_at': key3_created_at,
-                'locacoes': dataLocacoes
+                'locacoes': dataLocacoes,
+                'reservas': reservas,
+                'espacos': espacos_list
             })     
         else:
             return JsonResponse({
@@ -415,7 +473,16 @@ def pulsoPortoes(request):
         # Acessando um valor específico | {"cpf":073.969.489-83,"fn":"people|enter|leave"}
         
         userApp = UserApp.objects.get(cpf=dados.get('cpf', None))
-        fn = dados.get('fn', None)              
+        fn = dados.get('fn', None)      
+
+        # Salvar log no banco
+        log = LogGate()
+        log.client = userApp.client
+        log.condomino = userApp.name
+        log.hu = userApp.hu
+        log.comando = fn
+        log.created_at = timezone.now()
+        log.save()
         
         # Enviar comando para mqtt
         logging.info(f'\nEnviando comando MQTT\n')
@@ -432,15 +499,6 @@ def pulsoPortoes(request):
             mqtt_topic = 'bitz/energy_power/api/send'
             mqtt_msg = '{"mac":"CA:FE:C0:FF:EE:E4","read":false,"relay1":false,"relay2":true,"relay3":false,"red":0,"green":0,"blue":0}'
             mqttSendDataToDevice(mqtt_msg, mqtt_topic)
-        
-        # Salvar log no banco
-        log = LogGate()
-        log.client = userApp.client
-        log.condomino = userApp.name
-        log.hu = userApp.hu
-        log.comando = fn
-        log.created_at = timezone.now()
-        log.save()
         
         return JsonResponse({
             'status': True,
@@ -646,7 +704,119 @@ def ping(request):
             'description': str(e)
         })        
     
+@csrf_exempt
+@require_http_methods(["POST"])
+def reserva(request):
+
+    """
+    Essa fn é executada quando o user no app faz uma requisição de reservas.
+    """
     
+    try:        
+        
+        cpf = request.POST.get('cpf', None)
+        password = request.POST.get('password', None)
+        tipo = request.POST.get('tipo', None)
+        date = request.POST.get('date', None)
+        hora_inicial = request.POST.get('hora_inicial', None)
+        hora_final = request.POST.get('hora_final', None)
+        espaco_id = request.POST.get('espaco_id', None)
+        
+        if not cpf or not password or not tipo or not date or not hora_inicial or not hora_final or not espaco_id: 
+            return JsonResponse({
+                'status': 500,
+                'description': 'Formulário inválido!'
+            })
+            
+            
+        espaco = Espaco.objects.get(id=espaco_id)
+        userApp = UserApp.objects.filter(cpf=cpf, password=password).first()
+        
+        if userApp and espaco:
+            
+            # Definindo o locale para português do Brasil
+            locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
+            
+            data1 = DateSTR2DatetimeFormat2(date)
+            data2 = DateSTR2DatetimeFormat2(date)
+            data_begin = data1.replace(hour=int(hora_inicial), minute=0, second=0)
+            data_end = data2.replace(hour=int(hora_final), minute=0, second=0)
+            
+            # verifica se já não tem uma reserva nesse período
+            reserva_exists = Reserva.objects.filter(espaco=espaco, data_inicio=data_begin, data_fim=data_end).exists()
+            
+            if reserva_exists:
+                return JsonResponse({
+                    'status': 201,
+                    'description': 'Já existe uma reserva para esse espaço nesse período. Por favor, escolha outro horário ou data.'
+                })
+            
+            reserva = Reserva()
+            reserva.espaco = espaco
+            reserva.userApp = userApp
+            reserva.data_inicio = data_begin    
+            reserva.data_fim = data_end    
+            reserva.status = 0 # Pendente
+            reserva.created_at = timezone.now()
+            reserva.save()
+            
+            #Atualizando reservas no user app
+            #### Reservas            
+            agora = timezone.now()
+            reservas_qs = Reserva.objects.filter(data_fim__gte=agora).order_by('-data_inicio')
+
+            reservas = []
+            for reserva in reservas_qs:
+                espaco = getattr(reserva, 'espaco', None)                
+                
+                itens_do_espaco = EspacoItem.objects.filter(espaco=espaco)
+                itens = []
+                
+                for item in itens_do_espaco:
+                    itens.append({
+                        'id': item.id,
+                        'descricao': item.descricao,
+                        'quantidade': item.quantidade
+                    })
+                
+                item = {
+                    'id': reserva.id,
+                    'espaco': {
+                        'id': espaco.id if espaco else None,
+                        'nome': espaco.nome if espaco else None,
+                        'valor_reserva': espaco.valor_reserva if espaco else None,
+                        'regras': espaco.regras if espaco else None,
+                        'itens': itens if itens else []
+                    },
+                    'data_inicio': reserva.data_inicio.strftime('%d/%m/%Y %Hh:%Mm') if reserva.data_inicio else None,
+                    'data_fim': reserva.data_fim.strftime('%d/%m/%Y %Hh:%Mm') if reserva.data_fim else None,
+                    'status': reserva.status,
+                    'created_at': reserva.created_at.strftime('%d/%m/%Y %Hh:%Mm') if reserva.created_at else None
+                }
+                reservas.append(item)
+                 
+            
+            return JsonResponse({                
+                'status': 200,
+                'description': 'Solicitação de reserva enviada para o síndico com sucesso! Em breve será analisada e ficará disponível na lista de reservas.',
+                'reservas': reservas
+            })
+            
+        else:
+            return JsonResponse({
+              'status': 500,
+                'description': 'O CPF ou a senha está errado! Fale com seu síndico e verifique os dados de acesso'
+            })
+
+    except Exception as e:
+        context = {
+            'status': 500,
+            'description': str(e)
+        }
+
+
+    return HttpResponse(json.dumps(context, ensure_ascii=False), content_type="application/json")  
+        
 
 
 
