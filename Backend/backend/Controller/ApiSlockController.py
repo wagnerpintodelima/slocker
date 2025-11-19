@@ -92,36 +92,8 @@ def login(request):
             agora = timezone.now()
             reservas_qs = Reserva.objects.filter(data_fim__gte=agora).order_by('-data_inicio')
 
-            reservas = []
-            for reserva in reservas_qs:
-                espaco = getattr(reserva, 'espaco', None)                
-                
-                itens_do_espaco = EspacoItem.objects.filter(espaco=espaco)
-                itens = []
-                
-                for item in itens_do_espaco:
-                    itens.append({
-                        'id': item.id,
-                        'descricao': item.descricao,
-                        'quantidade': item.quantidade
-                    })
-                
-                item = {
-                    'id': reserva.id,
-                    'espaco': {
-                        'id': espaco.id if espaco else None,
-                        'nome': espaco.nome if espaco else None,
-                        'valor_reserva': espaco.valor_reserva if espaco else None,
-                        'regras': espaco.regras if espaco else None,
-                        'itens': itens if itens else []
-                    },
-                    'data_inicio': reserva.data_inicio.strftime('%d/%m/%Y %Hh:%Mm') if reserva.data_inicio else None,
-                    'data_fim': reserva.data_fim.strftime('%d/%m/%Y %Hh:%Mm') if reserva.data_fim else None,
-                    'status': reserva.status,
-                    'created_at': reserva.created_at.strftime('%d/%m/%Y %Hh:%Mm') if reserva.created_at else None
-                }
-                reservas.append(item)
-                                        
+            reservas = getReservas()
+                       
             # Espaços
             espacos = Espaco.objects.all()
             espacos_list = []
@@ -760,41 +732,7 @@ def reserva(request):
             reserva.created_at = timezone.now()
             reserva.save()
             
-            #Atualizando reservas no user app
-            #### Reservas            
-            agora = timezone.now()
-            reservas_qs = Reserva.objects.filter(data_fim__gte=agora).order_by('-data_inicio')
-
-            reservas = []
-            for reserva in reservas_qs:
-                espaco = getattr(reserva, 'espaco', None)                
-                
-                itens_do_espaco = EspacoItem.objects.filter(espaco=espaco)
-                itens = []
-                
-                for item in itens_do_espaco:
-                    itens.append({
-                        'id': item.id,
-                        'descricao': item.descricao,
-                        'quantidade': item.quantidade
-                    })
-                
-                item = {
-                    'id': reserva.id,
-                    'espaco': {
-                        'id': espaco.id if espaco else None,
-                        'nome': espaco.nome if espaco else None,
-                        'valor_reserva': espaco.valor_reserva if espaco else None,
-                        'regras': espaco.regras if espaco else None,
-                        'itens': itens if itens else []
-                    },
-                    'data_inicio': reserva.data_inicio.strftime('%d/%m/%Y %Hh:%Mm') if reserva.data_inicio else None,
-                    'data_fim': reserva.data_fim.strftime('%d/%m/%Y %Hh:%Mm') if reserva.data_fim else None,
-                    'status': reserva.status,
-                    'created_at': reserva.created_at.strftime('%d/%m/%Y %Hh:%Mm') if reserva.created_at else None
-                }
-                reservas.append(item)
-                 
+            reservas = getReservas()
             
             return JsonResponse({                
                 'status': 200,
@@ -817,6 +755,89 @@ def reserva(request):
 
     return HttpResponse(json.dumps(context, ensure_ascii=False), content_type="application/json")  
         
+def getReservas():
+    # Definindo o locale para português do Brasil
+    locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')            
+    
+    #Atualizando reservas no user app
+    #### Reservas            
+    agora = timezone.now()
+    reservas_qs = Reserva.objects.filter(data_fim__gte=agora).order_by('-data_inicio')
+
+    reservas = []
+    for reserva in reservas_qs:
+        espaco = getattr(reserva, 'espaco', None)                
+        
+        itens_do_espaco = EspacoItem.objects.filter(espaco=espaco)
+        itens = []
+        
+        for item in itens_do_espaco:
+            itens.append({
+                'id': item.id,
+                'descricao': item.descricao,
+                'quantidade': item.quantidade
+            })
+        
+        item = {
+            'id': reserva.id,
+            'espaco': {
+                'id': espaco.id if espaco else None,
+                'nome': espaco.nome if espaco else None,
+                'valor_reserva': espaco.valor_reserva if espaco else None,
+                'regras': espaco.regras if espaco else None,
+                'itens': itens if itens else []
+            },
+            'data_inicio': reserva.data_inicio.strftime('%d/%m/%Y %Hh:%Mm') if reserva.data_inicio else None,
+            'data_fim': reserva.data_fim.strftime('%d/%m/%Y %Hh:%Mm') if reserva.data_fim else None,
+            'status': reserva.status,
+            'created_at': reserva.created_at.strftime('%d/%m/%Y %Hh:%Mm') if reserva.created_at else None
+        }
+        reservas.append(item)    
+                
+    return reservas
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def reservaRefresh(request):
+
+    """
+    Essa fn é executada quando o user quer atualização das reservas.
+    """
+    
+    try:        
+        
+        cpf = request.POST.get('cpf', None)
+        password = request.POST.get('password', None)
+        
+        if not cpf or not password: 
+            return JsonResponse({
+                'status': 500,
+                'description': 'Formulário inválido!'
+            })                        
+        
+        userApp = UserApp.objects.filter(cpf=cpf, password=password).first()
+        
+        if userApp:
+            return JsonResponse({                
+                'status': 200,
+                'description': 'Solicitação de reserva enviada para o síndico com sucesso! Em breve será analisada e ficará disponível na lista de reservas.',
+                'reservas': getReservas()
+            })
+            
+        else:
+            return JsonResponse({
+              'status': 500,
+                'description': 'O CPF ou a senha está errado! Fale com seu síndico e verifique os dados de acesso'
+            })
+
+    except Exception as e:
+        context = {
+            'status': 500,
+            'description': str(e)
+        }
+
+    return HttpResponse(json.dumps(context, ensure_ascii=False), content_type="application/json")  
 
 
 
