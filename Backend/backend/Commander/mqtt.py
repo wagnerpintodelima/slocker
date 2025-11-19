@@ -33,7 +33,7 @@ def on_message(client, obj, msg):
         print(f'Dados Bruto da request: \n{data}')
 
         con = psycopg2.connect(host='slock.com.br', dbname='slock',
-                               user='mwm', password='mwm04092021')
+                               user='smainex', password='smainex@22072025')
         cur = con.cursor()
         # sql = "INSERT INTO mqtt VALUES(default, '{}', now())".format(str(msg_))
         # cur.execute(sql)

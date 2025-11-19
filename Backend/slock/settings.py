@@ -92,8 +92,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'slock',
-        'USER': 'slock',
-        'PASSWORD': 'slock@14091991',
+        'USER': 'smainex',
+        'PASSWORD': 'smainex@22072025',
         'HOST': 'slock.com.br',
         'PORT': '5432',
     }

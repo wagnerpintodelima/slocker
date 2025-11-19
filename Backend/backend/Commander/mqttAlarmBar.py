@@ -64,7 +64,7 @@ def on_message(client, obj, msg):
             if 'imu_alarm_on' in data["fn"]:                
                 
                 alarm_bar_id = extrair_id(data['id'])
-                con = psycopg2.connect(host='slock.com.br', dbname='slock', user='slock', password='slock@14091991')
+                con = psycopg2.connect(host='slock.com.br', dbname='slock', user='smainex', password='smainex@22072025')
 
                 # Pegar a última chamada
                 querySelect = f"""
