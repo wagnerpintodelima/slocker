@@ -92,11 +92,19 @@ def downloadFile(folder, filename, format):
     response['Content-Disposition'] = f'attachment; filename="{filename}.{format}"'
     return response
 
+# 18/11/2024
 def DateSTR2Datetime(str_date):
     try:
         return datetime.datetime.strptime(str_date, "%d/%m/%Y")  # Converte a string para datetime
     except ValueError:
         return False  # Retorna False se a conversão falhar
+    
+# 2025-11-18    
+def DateSTR2DatetimeFormat2(str_date):
+    try:
+        return datetime.datetime.strptime(str_date, "%Y-%m-%d")  # Converte a string para datetime
+    except ValueError:
+        return False  # Retorna False se a conversão falhar    
     
 def str_to_datetime(date_time_str):
     try:        
