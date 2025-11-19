@@ -415,16 +415,7 @@ def pulsoPortoes(request):
         # Acessando um valor específico | {"cpf":073.969.489-83,"fn":"people|enter|leave"}
         
         userApp = UserApp.objects.get(cpf=dados.get('cpf', None))
-        fn = dados.get('fn', None)      
-
-        # Salvar log no banco
-        log = LogGate()
-        log.client = userApp.client
-        log.condomino = userApp.name
-        log.hu = userApp.hu
-        log.comando = fn
-        log.created_at = timezone.now()
-        log.save()
+        fn = dados.get('fn', None)              
         
         # Enviar comando para mqtt
         logging.info(f'\nEnviando comando MQTT\n')
@@ -441,6 +432,15 @@ def pulsoPortoes(request):
             mqtt_topic = 'bitz/energy_power/api/send'
             mqtt_msg = '{"mac":"CA:FE:C0:FF:EE:E4","read":false,"relay1":false,"relay2":true,"relay3":false,"red":0,"green":0,"blue":0}'
             mqttSendDataToDevice(mqtt_msg, mqtt_topic)
+        
+        # Salvar log no banco
+        log = LogGate()
+        log.client = userApp.client
+        log.condomino = userApp.name
+        log.hu = userApp.hu
+        log.comando = fn
+        log.created_at = timezone.now()
+        log.save()
         
         return JsonResponse({
             'status': True,
