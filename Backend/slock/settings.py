@@ -17,7 +17,7 @@ SECRET_KEY = 'django-insecure-or90-4b_^h0w4j)%nld(2npov#-6y9+sm&t_)6f23!4!pmu6ly
 # SECRET_KEY = 'Wagner&Felps-6669m)-f8u^x!3co4^61=$a5=^rp9zyegr9g_2h%z2z8e8_v1(yv%'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['slock.com.br', 'www.slock.com.br', 'localhost', '127.0.0.1', '192.168.3.3']
 
