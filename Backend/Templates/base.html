@@ -409,7 +409,7 @@
                         </a>
                     </li>
                     
-                    {% if request.user.id == 1 %}
+                    {% if request.user.is_superuser %}
                     <li>
                         <a href="{% url 'UserAppIndexView' %}">
                             <i class="bi bi-circle"></i><span>Usuário App</span>
