@@ -1,4 +1,5 @@
 import json
+import logging
 from pathlib import Path
 
 from django.contrib import messages
@@ -14,6 +15,8 @@ from django.views.decorators.http import require_http_methods
 from app.models import TrackerImportJob
 from backend.models import Talhao, TalhaoChild
 from backend.services.tracker_jobs import TALHAO_STATUS_PROCESSED
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -58,6 +61,7 @@ def newAction(request):
         return redirect("TrackerNewView")
 
     try:
+        logger.info("Recebendo upload do tracker. user_id=%s arquivo=%s", getattr(request.user, "id", None), getattr(file, "name", None))
         file_name = default_storage.save(
             f'tracker_uploads/{timezone.now().strftime("%Y%m%d%H%M%S")}_{file.name}',
             ContentFile(file.read()),
@@ -81,7 +85,9 @@ def newAction(request):
             messages.SUCCESS,
             "Upload recebido. O arquivo foi enviado para a fila de processamento.",
         )
+        logger.info("Job do tracker enfileirado com sucesso. talhao_id=%s arquivo=%s", talhao.id, file_name)
     except Exception as exc:
+        logger.exception("Erro ao enfileirar arquivo do tracker")
         messages.add_message(request, messages.ERROR, f"Erro ao enfileirar arquivo: {exc}")
 
     return redirect("TrackerIndexView")
@@ -142,6 +148,7 @@ def deleteAction(request, talhao_id):
     file_paths = []
 
     try:
+        logger.info("Solicitada exclusao de talhao do tracker. talhao_id=%s user_id=%s", talhao_id, getattr(request.user, "id", None))
         with transaction.atomic():
             talhao = Talhao.objects.get(id=int(talhao_id))
             jobs = list(TrackerImportJob.objects.filter(talhao_id=talhao.id))
@@ -153,7 +160,9 @@ def deleteAction(request, talhao_id):
 
         for file_path in file_paths:
             try:
-                Path(file_path).unlink(missing_ok=True)
+                file_to_remove = Path(file_path)
+                if file_to_remove.exists():
+                    file_to_remove.unlink()
             except Exception:
                 pass
 
@@ -162,6 +171,7 @@ def deleteAction(request, talhao_id):
             "descricao": "Excluído com sucesso",
         }
     except Exception as exc:
+        logger.exception("Erro ao excluir talhao do tracker. talhao_id=%s", talhao_id)
         context = {
             "status": 500,
             "description": str(exc),

@@ -1,4 +1,5 @@
 from pathlib import Path
+import logging
 import time
 
 from django.core.management.base import BaseCommand
@@ -7,6 +8,8 @@ from django.utils import timezone
 
 from app.models import TrackerImportJob
 from backend.services.tracker_jobs import mark_talhao_error, process_tracker_file
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -20,6 +23,7 @@ class Command(BaseCommand):
         run_once = options["once"]
         sleep_seconds = max(options["sleep"], 1)
 
+        logger.info("Worker da fila do tracker iniciado. once=%s sleep=%s", run_once, sleep_seconds)
         self.stdout.write(self.style.SUCCESS("Worker da fila do tracker iniciado."))
 
         while True:
@@ -51,6 +55,7 @@ class Command(BaseCommand):
             job.save(update_fields=["status", "started_at", "finished_at", "attempts", "error_message", "updated_at"])
 
         try:
+            logger.info("Processando job do tracker. job_id=%s talhao_id=%s arquivo=%s", job.id, job.talhao_id, job.file_path)
             total_saved = process_tracker_file(job.talhao_id, job.file_path)
             job.status = TrackerImportJob.STATUS_DONE
             job.total_saved = total_saved
@@ -58,8 +63,11 @@ class Command(BaseCommand):
             job.save(update_fields=["status", "total_saved", "finished_at", "updated_at"])
 
             if job.file_path:
-                Path(job.file_path).unlink(missing_ok=True)
+                file_to_remove = Path(job.file_path)
+                if file_to_remove.exists():
+                    file_to_remove.unlink()
 
+            logger.info("Job do tracker concluido. job_id=%s total_saved=%s", job.id, total_saved)
             self.stdout.write(self.style.SUCCESS(f"Job {job.id} concluido com {total_saved} linha(s)."))
         except Exception as exc:
             mark_talhao_error(job.talhao_id)
@@ -67,6 +75,7 @@ class Command(BaseCommand):
             job.error_message = str(exc)
             job.finished_at = timezone.now()
             job.save(update_fields=["status", "error_message", "finished_at", "updated_at"])
+            logger.exception("Job do tracker falhou. job_id=%s talhao_id=%s", job.id, job.talhao_id)
             self.stderr.write(self.style.ERROR(f"Job {job.id} falhou: {exc}"))
 
         return True
