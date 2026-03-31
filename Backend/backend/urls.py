@@ -22,4 +22,5 @@ urlpatterns = [
     path('ordem/producao/', include('backend.Routes.OrdemProducao.urls')),
     path('alarm/bar/', include('backend.Routes.AlarmBar.urls')),
     path('reserva/', include('backend.Routes.Reserva.urls')),
+    path('tracker/', include('backend.Routes.Tracker.urls')),
 ]

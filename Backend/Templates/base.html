@@ -462,7 +462,7 @@
                 </ul>
             </li><!-- End Forms Nav -->
 
-            {% if request.user.id == 1 or request.user.id == 5 %} {# Wagner, Douglas #}
+            {% if request.user.id == 1 %} {# Wagner, Douglas #}
             <li class="nav-item">
                 <a class="nav-link collapsed" data-bs-target="#forms-nav-estoque" data-bs-toggle="collapse" href="#">
                     <i class="bi bi-box-seam"></i><span>Estoque</span><i class="bi bi-chevron-down ms-auto"></i>
@@ -483,6 +483,15 @@
                     <span>Viagem</span>
                 </a>
             </li><!-- End Login Page Nav -->
+
+            {% if request.user.id == 1 %} {# Wagner, Douglas #}
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'TrackerIndexView' %}">
+                    <i class="bi bi-bus-front"></i>
+                    <span>Tracker</span>
+                </a>
+            </li><!-- End Login Page Nav -->
+            {% endif %}
 
             {% if request.user.id == 9 or request.user.is_superuser %} 
             <li class="nav-item">

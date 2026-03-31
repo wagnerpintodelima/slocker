@@ -1,0 +1,423 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tracker - Mapa{% endblock %}
+
+{% block css %}
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+  .tracker-point-list {
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
+  .tracker-point-item {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .tracker-point-item:hover,
+  .tracker-point-item.active {
+    background-color: #f1f8f4;
+  }
+
+  .tracker-map-shell {
+    position: relative;
+  }
+
+  .tracker-map-shell.is-fullscreen {
+    z-index: 2000;
+    background: #ffffff;
+  }
+
+  .tracker-map-shell.is-fullscreen + .tracker-sidebar {
+    display: none;
+  }
+
+  .tracker-map-shell.is-fullscreen #map {
+    height: calc(100vh - 220px) !important;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle">
+  <h1>Rastreamento de Viagens</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'indexView' %}">Home</a></li>
+      <li class="breadcrumb-item">Rastreamento</li>
+      <li class="breadcrumb-item active">{{ talhao.name }}</li>
+    </ol>
+  </nav>
+</div>
+
+<section class="section dashboard" id="app">
+  <div class="row">
+    <div class="col-lg-9 tracker-map-shell" id="trackerMapShell">
+      <div id="map" style="height: 500px;"></div>
+    </div>
+
+    <div class="col-lg-3 tracker-sidebar" id="trackerSidebar" style="overflow-y: scroll; max-height: 500px;">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Pontos da Viagem (Tempo: {{ delta_time }} | Vel.Max: {{ max_speed }} km/h)</h5>
+
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+            <label class="form-check-label" for="flexCheckDefault">
+              Dados RAW
+            </label>
+          </div>
+
+          <div class="mb-3" id="rawInputWrapper" style="display: none;">
+            <label for="exampleFormControlInput4" class="form-label">Pacote raw</label>
+            <input type="text" class="form-control" id="exampleFormControlInput4" placeholder="raw">
+          </div>
+
+          <div class="mb-3" id="latitudeInputWrapper">
+            <label for="exampleFormControlInput1" class="form-label">Latitude</label>
+            <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="Latitude">
+          </div>
+
+          <div class="mb-3" id="longitudeInputWrapper">
+            <label for="exampleFormControlInput2" class="form-label">Longitude</label>
+            <input type="text" class="form-control" id="exampleFormControlInput2" placeholder="Longitude">
+          </div>
+
+          <button class="btn btn-sm btn-primary mb-3" id="addPointButton" type="button">
+            <i class="bi bi-plus-circle"></i>  Adicionar Ponto
+          </button>
+
+          <div id="pointList" class="list-group list-group-flush tracker-point-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-12 mt-3">
+      <a href="{% url 'TrackerIndexView' %}" class="btn btn-primary">
+        <i class="bi bi-arrow-bar-left"></i> Voltar
+      </a>
+
+      <a href="#" class="btn btn-secondary" id="toggleMapFullscreen">
+        <i class="bi bi-fullscreen"></i> Maximizar mapa
+      </a>
+
+
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/js/Carro/index.js' %}"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  const points = JSON.parse('{{ points_json|escapejs }}');
+  const map = L.map('map');
+  const pointList = document.getElementById('pointList');
+  const rawCheckbox = document.getElementById('flexCheckDefault');
+  const rawInput = document.getElementById('exampleFormControlInput4');
+  const latitudeInput = document.getElementById('exampleFormControlInput1');
+  const longitudeInput = document.getElementById('exampleFormControlInput2');
+  const rawInputWrapper = document.getElementById('rawInputWrapper');
+  const latitudeInputWrapper = document.getElementById('latitudeInputWrapper');
+  const longitudeInputWrapper = document.getElementById('longitudeInputWrapper');
+  const addPointButton = document.getElementById('addPointButton');
+  const trackerMapShell = document.getElementById('trackerMapShell');
+  const trackerSidebar = document.getElementById('trackerSidebar');
+  const toggleMapFullscreenButton = document.getElementById('toggleMapFullscreen');
+  const pointLayers = [];
+  let manualPointLayer = null;
+  let routeLine = null;
+  let isMapFullscreen = false;
+
+  const startIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:16px;height:16px;border-radius:50%;background:#198754;border:3px solid #ffffff;box-shadow:0 0 0 2px rgba(25,135,84,0.35);"></div>',
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  });
+
+  const endIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:16px;height:16px;border-radius:50%;background:#dc3545;border:3px solid #ffffff;box-shadow:0 0 0 2px rgba(220,53,69,0.35);"></div>',
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors',
+    referrerPolicy: 'strict-origin-when-cross-origin'
+  }).addTo(map);
+
+  const buildPopupContent = (point, title) =>
+    `<strong>${title}</strong><br>` +
+    `Tipo: ${point.type || '-'}<br>` +
+    `Latitude: ${point.lat}<br>` +
+    `Longitude: ${point.lng}<br>` +
+    `Velocidade: ${point.speed ?? '-'}<br>` +
+    `Satelites: ${point.satellites ?? '-'}<br>` +
+    `Data: ${point.happened_at || '-'}`;
+
+  const setActiveItem = (index) => {
+    document.querySelectorAll('.tracker-point-item').forEach((item, itemIndex) => {
+      item.classList.toggle('active', itemIndex === index);
+    });
+  };
+
+  const toggleInputMode = () => {
+    const useRaw = rawCheckbox.checked;
+    rawInputWrapper.style.display = useRaw ? 'block' : 'none';
+    latitudeInputWrapper.style.display = useRaw ? 'none' : 'block';
+    longitudeInputWrapper.style.display = useRaw ? 'none' : 'block';
+  };
+
+  const parseCoordinateFromNmea = (value, hemisphere) => {
+    if (!value || !hemisphere) {
+      return null;
+    }
+
+    const numericValue = parseFloat(String(value).replace(',', '.'));
+    if (Number.isNaN(numericValue)) {
+      return null;
+    }
+
+    const degrees = Math.floor(numericValue / 100);
+    const minutes = numericValue - (degrees * 100);
+    let decimal = degrees + (minutes / 60);
+
+    if (hemisphere === 'S' || hemisphere === 'W') {
+      decimal *= -1;
+    }
+
+    return Number(decimal.toFixed(8));
+  };
+
+  const extractLatLngFromRaw = (rawValue) => {
+    const parts = rawValue.trim().split(',');
+    const sentenceType = parts[0] || '';
+
+    if (sentenceType.includes('GGA')) {
+      return {
+        lat: parseCoordinateFromNmea(parts[2], parts[3]),
+        lng: parseCoordinateFromNmea(parts[4], parts[5]),
+        type: 'GGA'
+      };
+    }
+
+    if (sentenceType.includes('RMC')) {
+      return {
+        lat: parseCoordinateFromNmea(parts[3], parts[4]),
+        lng: parseCoordinateFromNmea(parts[5], parts[6]),
+        type: 'RMC'
+      };
+    }
+
+    return null;
+  };
+
+  const buildPointTitle = (index) => (
+    index === 0 ? 'Largada' : index === points.length - 1 ? 'Chegada' : `Ponto ${index + 1}`
+  );
+
+  const clearPointLayers = () => {
+    pointLayers.forEach(layer => map.removeLayer(layer));
+    pointLayers.length = 0;
+  };
+
+  const drawRoute = () => {
+    if (routeLine) {
+      map.removeLayer(routeLine);
+      routeLine = null;
+    }
+
+    if (!points.length) {
+      return;
+    }
+
+    const latlngs = points.map(point => [point.lat, point.lng]);
+    routeLine = L.polyline(latlngs, {
+      color: '#198754',
+      weight: 4
+    }).addTo(map);
+  };
+
+  const renderPointList = () => {
+    pointList.innerHTML = '';
+
+    if (!points.length) {
+      pointList.innerHTML = '<div class="list-group-item">Nenhum ponto encontrado para esta viagem.</div>';
+      return;
+    }
+
+    points.forEach((point, index) => {
+      const title = buildPointTitle(index);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'list-group-item list-group-item-action tracker-point-item';
+      button.innerHTML =
+        `<strong>${title}</strong><br>` +
+        `<small>Tipo: ${point.type || '-'} | Data: ${point.happened_at || '-'}</small><br>` +
+        `<small>Lat: ${point.lat} | Lng: ${point.lng}</small>`;
+
+      button.addEventListener('click', () => {
+        setActiveItem(index);
+        map.setView([point.lat, point.lng], Math.max(map.getZoom(), 17), { animate: true });
+        pointLayers[index].openPopup();
+      });
+
+      pointList.appendChild(button);
+    });
+  };
+
+  const renderPointsOnMap = () => {
+    clearPointLayers();
+
+    if (!points.length) {
+      return;
+    }
+
+    points.forEach((point, index) => {
+      const title = buildPointTitle(index);
+      let layer;
+
+      if (index === 0) {
+        layer = L.marker([point.lat, point.lng], { icon: startIcon });
+      } else if (index === points.length - 1) {
+        layer = L.marker([point.lat, point.lng], { icon: endIcon });
+      } else {
+        layer = L.circleMarker([point.lat, point.lng], {
+          radius: 4,
+          color: '#0d6efd',
+          weight: 1,
+          fillColor: '#0d6efd',
+          fillOpacity: 0.8
+        });
+      }
+
+      layer.addTo(map).bindPopup(buildPopupContent(point, title));
+      pointLayers.push(layer);
+    });
+  };
+
+  const refreshMap = (focusLastPoint = false) => {
+    drawRoute();
+    renderPointsOnMap();
+    renderPointList();
+
+    if (!points.length) {
+      map.setView([-25.4284, -49.2733], 5);
+      return;
+    }
+
+    const latlngs = points.map(point => [point.lat, point.lng]);
+    map.fitBounds(latlngs, { padding: [20, 20] });
+
+    const activeIndex = focusLastPoint ? points.length - 1 : 0;
+    setActiveItem(activeIndex);
+
+    if (focusLastPoint) {
+      map.setView([points[activeIndex].lat, points[activeIndex].lng], Math.max(map.getZoom(), 17), { animate: true });
+      pointLayers[activeIndex].openPopup();
+    }
+  };
+
+  const updateFullscreenButtonLabel = () => {
+    toggleMapFullscreenButton.innerHTML = isMapFullscreen
+      ? '<i class="bi bi-fullscreen-exit"></i> Minimizar mapa'
+      : '<i class="bi bi-fullscreen"></i> Maximizar mapa';
+  };
+
+  const toggleMapFullscreen = () => {
+    isMapFullscreen = !isMapFullscreen;
+    trackerMapShell.classList.toggle('is-fullscreen', isMapFullscreen);
+    trackerMapShell.classList.toggle('col-lg-9', !isMapFullscreen);
+    trackerMapShell.classList.toggle('col-lg-12', isMapFullscreen);
+    trackerSidebar.classList.toggle('d-none', isMapFullscreen);
+    document.body.classList.toggle('overflow-hidden', isMapFullscreen);
+    updateFullscreenButtonLabel();
+
+    window.setTimeout(() => {
+      map.invalidateSize();
+
+      if (points.length) {
+        const latlngs = points.map(point => [point.lat, point.lng]);
+        map.fitBounds(latlngs, { padding: [20, 20] });
+      }
+    }, 150);
+  };
+
+  rawCheckbox.addEventListener('change', toggleInputMode);
+  toggleInputMode();
+  updateFullscreenButtonLabel();
+
+  toggleMapFullscreenButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    toggleMapFullscreen();
+  });
+
+  addPointButton.addEventListener('click', () => {
+    let lat;
+    let lng;
+    let type = 'MANUAL';
+
+    if (rawCheckbox.checked) {
+      const parsedRaw = extractLatLngFromRaw(rawInput.value);
+
+      if (!parsedRaw || parsedRaw.lat === null || parsedRaw.lng === null) {
+        alert('Informe um pacote RAW valido no formato GGA ou RMC.');
+        return;
+      }
+
+      lat = parsedRaw.lat;
+      lng = parsedRaw.lng;
+      type = parsedRaw.type;
+    } else {
+      lat = parseFloat(String(latitudeInput.value).replace(',', '.'));
+      lng = parseFloat(String(longitudeInput.value).replace(',', '.'));
+    }
+
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      alert('Informe latitude e longitude validas.');
+      return;
+    }
+
+    if (manualPointLayer) {
+      map.removeLayer(manualPointLayer);
+    }
+
+    const manualPoint = {
+      lat,
+      lng,
+      type,
+      speed: null,
+      satellites: null,
+      happened_at: new Date().toLocaleString('pt-BR')
+    };
+
+    manualPointLayer = L.marker([manualPoint.lat, manualPoint.lng]).addTo(map).bindPopup(
+      buildPopupContent(manualPoint, 'Ponto avulso')
+    );
+
+    rawInput.value = '';
+    latitudeInput.value = '';
+    longitudeInput.value = '';
+    map.setView([manualPoint.lat, manualPoint.lng], Math.max(map.getZoom(), 17), { animate: true });
+    manualPointLayer.openPopup();
+  });
+
+  if (points.length) {
+    refreshMap();
+  } else {
+    map.setView([-25.4284, -49.2733], 5);
+    renderPointList();
+    L.popup()
+      .setLatLng([-25.4284, -49.2733])
+      .setContent('Nenhum ponto com latitude/longitude foi encontrado para exibir.')
+      .openOn(map);
+  }
+</script>
+{% endblock %}

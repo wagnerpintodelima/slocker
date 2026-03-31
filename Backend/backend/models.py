@@ -1067,4 +1067,30 @@ class Reserva(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'reserva'            
+        db_table = 'reserva'     
+        
+class Talhao(models.Model):
+    name = models.CharField(max_length=50)
+    status = models.IntegerField()   # 0: Pendente, 1: Confirmada, 2: Cancelada 
+    created_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'talhao'                    
+        
+
+class TalhaoChild(models.Model):
+    talhao = models.ForeignKey('Talhao', models.DO_NOTHING, blank=True, null=True, db_column='talhao')
+    sentence_type = models.CharField(max_length=10)
+    raw_line = models.TextField()
+    latitude = models.CharField(max_length=32, blank=True, null=True)
+    longitude = models.CharField(max_length=32, blank=True, null=True)
+    speed = models.FloatField(blank=True, null=True)
+    satellites = models.IntegerField(blank=True, null=True)
+    happened_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField()
+    status = models.IntegerField(default=0)
+
+    class Meta:
+        managed = False
+        db_table = 'talhao_child'        
