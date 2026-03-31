@@ -1,9 +1,12 @@
 import json
+from pathlib import Path
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.http import HttpResponse
+from django.db import transaction
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -132,6 +135,39 @@ def mapView(request):
     }
 
     return render(request, "Tracker/mapa.html", context)
+
+
+@login_required
+def deleteAction(request, talhao_id):
+    file_paths = []
+
+    try:
+        with transaction.atomic():
+            talhao = Talhao.objects.get(id=int(talhao_id))
+            jobs = list(TrackerImportJob.objects.filter(talhao_id=talhao.id))
+            file_paths = [job.file_path for job in jobs if job.file_path]
+
+            TrackerImportJob.objects.filter(talhao_id=talhao.id).delete()
+            TalhaoChild.objects.filter(talhao=talhao).delete()
+            talhao.delete()
+
+        for file_path in file_paths:
+            try:
+                Path(file_path).unlink(missing_ok=True)
+            except Exception:
+                pass
+
+        context = {
+            "status": 200,
+            "descricao": "Excluído com sucesso",
+        }
+    except Exception as exc:
+        context = {
+            "status": 500,
+            "description": str(exc),
+        }
+
+    return HttpResponse(json.dumps(context, ensure_ascii=False), content_type="application/json")
 
 
 def _format_timedelta(delta):

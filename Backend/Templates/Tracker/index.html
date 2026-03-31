@@ -54,6 +54,8 @@
                       <button type="button" class="btn btn-sm btn-secondary" disabled>Mapa</button>
                     {% endif %}
 
+                    <a href="#" class="btn btn-sm btn-danger" @click.once="deleteConfirm('{% url 'TrackerDeleteAction' row.item.id %}')">Excluir</a>
+
                     {% if row.job %}
                       <button type="button" class="btn btn-sm btn-light" disabled>{{ row.job.get_status_display }}</button>
                     {% endif %}

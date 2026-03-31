@@ -22,7 +22,8 @@ DEBUG = True
 ALLOWED_HOSTS = ['slock.com.br', 'www.slock.com.br', 'localhost', '127.0.0.1', '192.168.3.3']
 
 BLACKLIST_USERS = [
-    'mateusmarochi@gmail.com'
+    'mateusmarochi@gmail.com',
+    'jordaofelps@gmail.com'
 ]
 
 
