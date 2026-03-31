@@ -365,13 +365,14 @@
                         </a>
                     </li>
 
-                    {% if request.user.id == 1 %}
+                    
                     <li>
                         <a href="{% url 'TecnicoIndexView' %}">
                             <i class="bi bi-circle"></i><span>Colaborador</span>
                         </a>
                     </li>
 
+                    {% if request.user.id == 1 %}
                     <li>
                         <a href="{% url 'AlarmbarIndexView' %}">
                             <i class="bi bi-circle"></i><span>Alarm Bar</span>
@@ -379,15 +380,13 @@
                     </li>
                     {% endif %}
 
-
-
-                    {% if request.user.id == 1 %} {# Wagner, Douglas e Gustavo #}
+                    
                     <li>
                         <a href="{% url 'ProdutoIndexView' %}">
                             <i class="bi bi-circle"></i><span>Produto</span>
                         </a>
                     </li>                    
-                    {% endif %}
+                    
 
                     <li>
                         <a href="{% url 'MaquinaIndexView' %}">
@@ -395,13 +394,13 @@
                         </a>
                     </li>
 
-                    {% if request.user.id == 1 %}
+                    
                     <li>
                         <a href="{% url 'CarroIndexView' %}">
                             <i class="bi bi-circle"></i><span>Carros</span>
                         </a>
                     </li>
-                    {% endif %}
+                    
 
                     <li>
                         <a href="{% url 'AutomationIndexView' %}">
@@ -461,8 +460,7 @@
                     </li>
                 </ul>
             </li><!-- End Forms Nav -->
-
-            {% if request.user.id == 1 %} {# Wagner, Douglas #}
+            
             <li class="nav-item">
                 <a class="nav-link collapsed" data-bs-target="#forms-nav-estoque" data-bs-toggle="collapse" href="#">
                     <i class="bi bi-box-seam"></i><span>Estoque</span><i class="bi bi-chevron-down ms-auto"></i>
@@ -475,7 +473,7 @@
                     </li>
                 </ul>
             </li><!-- End Forms Nav -->
-            {% endif %}
+            
 
             <li class="nav-item">
                 <a class="nav-link collapsed" href="{% url 'ViagemFilterView' %}">
@@ -483,15 +481,13 @@
                     <span>Viagem</span>
                 </a>
             </li><!-- End Login Page Nav -->
-
-            {% if request.user.id == 1 %} {# Wagner, Douglas #}
+            
             <li class="nav-item">
                 <a class="nav-link collapsed" href="{% url 'TrackerIndexView' %}">
                     <i class="bi bi-bus-front"></i>
                     <span>Tracker</span>
                 </a>
-            </li><!-- End Login Page Nav -->
-            {% endif %}
+            </li><!-- End Login Page Nav -->            
 
             {% if request.user.id == 9 or request.user.is_superuser %} 
             <li class="nav-item">
