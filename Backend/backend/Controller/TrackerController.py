@@ -8,6 +8,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.http import HttpResponse
 from django.db import transaction
+from django.db.models import Count
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -24,6 +25,12 @@ def indexView(request):
     talhaos = Talhao.objects.order_by("-created_at")
     talhao_ids = [item.id for item in talhaos]
     jobs_by_talhao = {}
+    points_by_talhao = {
+        item["talhao"]: item["total_points"]
+        for item in TalhaoChild.objects.filter(talhao_id__in=talhao_ids, status=1)
+        .values("talhao")
+        .annotate(total_points=Count("id"))
+    }
     for job in TrackerImportJob.objects.filter(talhao_id__in=talhao_ids).order_by("-created_at"):
         if job.talhao_id not in jobs_by_talhao:
             jobs_by_talhao[job.talhao_id] = job
@@ -33,6 +40,8 @@ def indexView(request):
             {
                 "item": talhao,
                 "job": jobs_by_talhao.get(talhao.id),
+                "total_points": points_by_talhao.get(talhao.id, 0),
+                "estimated_time": _format_points_time(points_by_talhao.get(talhao.id, 0)),
             }
             for talhao in talhaos
         ]
@@ -96,7 +105,15 @@ def newAction(request):
 @login_required
 def mapView(request):
     talhaos = Talhao.objects.filter(status=TALHAO_STATUS_PROCESSED).order_by("-created_at")
-    talhao = talhaos.first()
+    talhao_id = request.GET.get("talhao_id")
+    talhao = None
+
+    if talhao_id:
+        talhao = talhaos.filter(id=talhao_id).first()
+
+    if not talhao:
+        talhao = talhaos.first()
+
     points = []
     delta_time = "--:--:--"
     max_speed = "0.00"
@@ -185,3 +202,9 @@ def _format_timedelta(delta):
     hours, remainder = divmod(total_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+
+def _format_points_time(total_points):
+    total_minutes = round(total_points / 2)
+    hours, minutes = divmod(total_minutes, 60)
+    return f"{hours:02d}:{minutes:02d}"

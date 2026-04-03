@@ -8,6 +8,11 @@ DOMAIN_ASSETS = 'https://slock.com.br/media/backend/upload'
 
 MQTT_PUBLISH_TOPIC = "auten/slocker/api/receiver"
 MQTT_SUBSCRIBER_TOPIC = "auten/slocker/api/send"
+MQTT_BROKER_HOST = os.getenv("MQTT_BROKER_HOST", "slock.com.br")
+MQTT_BROKER_PORT = int(os.getenv("MQTT_BROKER_PORT", "1883"))
+MQTT_USERNAME = os.getenv("MQTT_USERNAME", "AUTEN_SLOCKER")
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "AUTEN_slocker@20052022")
+MQTT_OPERATIONS_BASE_URL = os.getenv("MQTT_OPERATIONS_BASE_URL", "https://slock.com.br/api/slock")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/

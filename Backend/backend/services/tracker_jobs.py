@@ -68,8 +68,96 @@ def process_tracker_file(talhao_id, file_path):
     return total_saved
 
 
+def get_or_create_talhao_by_tracker_path(file_path):
+    talhao_name = Path(file_path).name
+    talhao = Talhao.objects.filter(name=talhao_name).order_by("-created_at", "-id").first()
+
+    if talhao:
+        return talhao, False
+
+    talhao = Talhao(
+        name=talhao_name,
+        created_at=timezone.now(),
+        status=TALHAO_STATUS_PENDING,
+    )
+    talhao.save()
+    return talhao, True
+
+
+def append_tracker_package(file_path, lines, clear_existing=False):
+    normalized_lines = [line.strip() for line in (lines or []) if str(line).strip()]
+    if not normalized_lines:
+        return None, 0
+
+    with transaction.atomic():
+        talhao, _created = get_or_create_talhao_by_tracker_path(file_path)
+        talhao = Talhao.objects.select_for_update().get(pk=talhao.pk)
+        talhao.status = TALHAO_STATUS_PROCESSING
+        talhao.save(update_fields=["status"])
+
+        if clear_existing:
+            TalhaoChild.objects.filter(talhao=talhao).delete()
+
+        total_saved = append_tracker_lines_to_talhao(talhao, normalized_lines)
+
+        if total_saved > 0:
+            talhao.status = TALHAO_STATUS_PROCESSED
+            talhao.save(update_fields=["status"])
+
+    return talhao, total_saved
+
+
 def mark_talhao_error(talhao_id):
     Talhao.objects.filter(pk=talhao_id).update(status=TALHAO_STATUS_ERROR)
+
+
+def append_tracker_lines_to_talhao(talhao, lines):
+    total_saved = 0
+    current_nmea_date = get_last_nmea_date_for_talhao(talhao)
+    now = timezone.now()
+    items = []
+
+    for line in lines:
+        parsed = parse_nmea_line(line, current_nmea_date)
+        if not parsed:
+            continue
+
+        if parsed.get("date_str"):
+            current_nmea_date = parsed.get("date_str")
+
+        items.append(
+            TalhaoChild(
+                talhao=talhao,
+                sentence_type=parsed["sentence_type"],
+                raw_line=line,
+                latitude=parsed.get("latitude"),
+                longitude=parsed.get("longitude"),
+                speed=parsed.get("speed"),
+                satellites=parsed.get("satellites"),
+                happened_at=parsed.get("happened_at"),
+                created_at=now,
+                status=1,
+            )
+        )
+
+    if items:
+        TalhaoChild.objects.bulk_create(items, batch_size=1000)
+        total_saved = len(items)
+
+    return total_saved
+
+
+def get_last_nmea_date_for_talhao(talhao):
+    last_with_time = (
+        TalhaoChild.objects.filter(talhao=talhao)
+        .exclude(happened_at__isnull=True)
+        .order_by("-happened_at")
+        .first()
+    )
+    if not last_with_time or not last_with_time.happened_at:
+        return None
+
+    return last_with_time.happened_at.strftime("%d%m%y")
 
 
 def parse_nmea_line(line, current_nmea_date=None):

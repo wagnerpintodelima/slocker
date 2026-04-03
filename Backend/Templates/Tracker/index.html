@@ -24,10 +24,12 @@
             <thead>
               <tr>
                 <th scope="col">ID</th>
-                <th scope="col">Nome do Talhão</th>
-                <th scope="col">Data de Criação</th>
+                <th scope="col">Nome do Talhao</th>
+                <th scope="col">Pontos</th>
+                <th scope="col">Tempo</th>
+                <th scope="col">Data de Criacao</th>
                 <th scope="col">Status</th>
-                <th scope="col">Ações</th>
+                <th scope="col">Acoes</th>
               </tr>
             </thead>
             <tbody>
@@ -35,6 +37,8 @@
                 <tr>
                   <td>{{ row.item.id }}</td>
                   <td>{{ row.item.name }}</td>
+                  <td>{{ row.total_points }}</td>
+                  <td>{{ row.estimated_time }}</td>
                   <td>{{ row.item.created_at }}</td>
                   <td>
                     {% if row.item.status == 1 %}
@@ -49,7 +53,7 @@
                   </td>
                   <td>
                     {% if row.item.status == 1 %}
-                      <a href="{% url 'TrackerMapView' %}" class="btn btn-sm btn-primary">Mapa</a>
+                      <a href="{% url 'TrackerMapView' %}?talhao_id={{ row.item.id }}" class="btn btn-sm btn-primary">Mapa</a>
                     {% else %}
                       <button type="button" class="btn btn-sm btn-secondary" disabled>Mapa</button>
                     {% endif %}
@@ -67,14 +71,14 @@
         </div>
       {% else %}
         <div class="alert alert-info" role="alert">
-          Nenhum talhão encontrado. Clique no botão "Nova análise" para criar um novo rastreamento.
+          Nenhum talhao encontrado. Clique no botao "Nova analise" para criar um novo rastreamento.
         </div>
       {% endif %}
     </div>
 
     <div class="col-lg-12">
       <a href="{% url 'TrackerNewView' %}" class="btn btn-primary">
-        <i class="bx bxs-plus-circle"></i> Nova análise
+        <i class="bx bxs-plus-circle"></i> Nova analise
       </a>
 
       <a href="{% url 'ViagemFilterView' %}" class="float" data-bs-toggle="tooltip" data-bs-placement="top" title="Filtrar">
