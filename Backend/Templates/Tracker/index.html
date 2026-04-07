@@ -40,17 +40,23 @@
                   <td>{{ row.total_points }}</td>
                   <td>{{ row.estimated_time }}</td>
                   <td>{{ row.item.created_at }}</td>
-                  <td>
-                    {% if row.item.status == 1 %}
-                      <span class="badge bg-success">Processado</span>
-                    {% elif row.item.status == 3 %}
-                      <span class="badge bg-primary">Processando</span>
-                    {% elif row.item.status == 2 %}
-                      <span class="badge bg-danger">Erro</span>
-                    {% else %}
-                      <span class="badge bg-secondary">Na fila</span>
-                    {% endif %}
-                  </td>
+	                  <td>
+	                    {% if row.item.status == 1 %}
+	                      <span class="badge bg-success">Processado</span>
+	                    {% elif row.item.status == 3 %}
+	                      <span class="badge bg-primary">Processando</span>
+	                    {% elif row.item.status == 2 %}
+	                      <span class="badge bg-danger">Erro</span>
+	                    {% else %}
+	                      <span class="badge bg-secondary">Na fila</span>
+	                    {% endif %}
+
+	                    {% if row.job and row.job.error_message %}
+	                      <div class="small text-danger mt-2" style="max-width: 320px; white-space: normal;">
+	                        {{ row.job.error_message }}
+	                      </div>
+	                    {% endif %}
+	                  </td>
                   <td>
                     {% if row.item.status == 1 %}
                       <a href="{% url 'TrackerMapView' %}?talhao_id={{ row.item.id }}" class="btn btn-sm btn-primary">Mapa</a>

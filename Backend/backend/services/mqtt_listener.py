@@ -1,10 +1,10 @@
-import datetime
 import json
 import logging
 import time
 
 import paho.mqtt.client as mqtt
 from django.conf import settings
+
 from backend.services.tracker_jobs import append_tracker_package
 
 
@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 class MqttListenerService:
     PACKAGE_LIMIT = 150
-    MAX_RETRIES_PER_PACKAGE = 3
     AUTOMATIONS_TOPICS = [
         {
             "name": "smx-000-001",
@@ -27,7 +26,6 @@ class MqttListenerService:
         self.broker_port = settings.MQTT_BROKER_PORT
         self.username = settings.MQTT_USERNAME
         self.password = settings.MQTT_PASSWORD
-        self.base_url = settings.MQTT_OPERATIONS_BASE_URL.rstrip("/")
         self.automations_topics = self.build_automations_topics()
         self.topic_map = {
             item["topic_uc_to_broker"]: item for item in self.automations_topics
@@ -40,16 +38,18 @@ class MqttListenerService:
         self.client.on_disconnect = self.on_disconnect
 
     def build_automations_topics(self):
-        topics = []
-        for item in self.AUTOMATIONS_TOPICS:
-            topics.append(
-                {
-                    "name": item["name"],
-                    "topic_uc_to_broker": item["topic_uc_to_broker"],
-                    "topic_broker_to_uc": item["topic_broker_to_uc"],
-                }
-            )
-        return topics
+        return list(self.AUTOMATIONS_TOPICS)
+
+    def describe_connect_rc(self, rc):
+        rc_map = {
+            0: "conexao aceita",
+            1: "versao de protocolo incorreta",
+            2: "client id invalido",
+            3: "servidor indisponivel",
+            4: "usuario ou senha invalidos",
+            5: "nao autorizado",
+        }
+        return rc_map.get(rc, "codigo desconhecido")
 
     def emit(self, message, level="info"):
         clean_message = str(message).rstrip()
@@ -58,12 +58,9 @@ class MqttListenerService:
         except Exception:
             pass
 
-        try:
-            log_method = getattr(logger, level, logger.info)
-            for line in clean_message.splitlines():
-                log_method(line)
-        except Exception:
-            pass
+        log_method = getattr(logger, level, logger.info)
+        for line in clean_message.splitlines():
+            log_method(line)
 
     def emit_block(self, title, lines, level="info"):
         block_lines = [
@@ -93,11 +90,29 @@ class MqttListenerService:
                 logger.info("Listener MQTT interrompido manualmente.")
                 raise
             except Exception:
-                logger.exception("Falha no loop principal do listener MQTT. Nova tentativa em %s segundo(s).", reconnect_delay)
+                logger.exception(
+                    "Falha no loop principal do listener MQTT. Nova tentativa em %s segundo(s).",
+                    reconnect_delay,
+                )
                 time.sleep(reconnect_delay)
 
     def on_connect(self, client, userdata, flags, rc):
-        logger.info("MQTT conectado. rc=%s", rc)
+        if rc == 0:
+            logger.info("MQTT conectado com sucesso. rc=%s", rc)
+        else:
+            logger.warning("MQTT conectado com alerta. rc=%s descricao=%s", rc, self.describe_connect_rc(rc))
+
+        if rc == 0:
+            self.publish(
+                {
+                    "type": "broker_status",
+                    "status": "online",
+                    "message": "Broker online",
+                },
+                "/broadcast/broker/status",
+            )
+            logger.info("Broadcast de status publicado. topic=/broadcast/broker/status")
+
         for item in self.automations_topics:
             client.subscribe(item["topic_uc_to_broker"], 0)
             logger.info(
@@ -110,62 +125,102 @@ class MqttListenerService:
         logger.warning("MQTT desconectado. rc=%s", rc)
 
     def on_message(self, client, userdata, msg):
-        now = datetime.datetime.now()
+        raw_payload = msg.payload.decode("utf-8", errors="replace")
         automation_config = self.topic_map.get(msg.topic)
 
-        try:
-            payload = msg.payload.decode("utf-8")
-            data = json.loads(payload)
-        except Exception:
-            self.emit(
-                f"Payload descartado por falha ao decodificar JSON UTF-8. topic={msg.topic}",
-                level="warning",
-            )
-            if automation_config:
-                self.retry_pending_package(automation_config)
-            return
-
-        logger.info("Mensagem MQTT recebida. topic=%s", msg.topic)
-
         if not automation_config:
-            logger.warning("Topico ignorado pelo listener principal. topic=%s", msg.topic)
+            return
+
+        if self.should_handle_as_raw_package(msg.topic, raw_payload, automation_config):
+            self.handle_raw_package_response(raw_payload, automation_config)
             return
 
         try:
-            self.handle_payload(data, now, automation_config)
+            data = json.loads(raw_payload)
         except Exception:
-            logger.exception("Falha ao processar mensagem MQTT. payload=%s", payload)
+            logger.warning(
+                "Payload MQTT invalido. automation=%s topic=%s",
+                automation_config["name"],
+                msg.topic,
+            )
+            return
+        self.handle_payload(data, automation_config)
 
-    def handle_payload(self, data, now, automation_config):
-        message_type = str(data.get("type", "")).strip().lower()
-
-        if message_type == "sync_inventory" or isinstance(data.get("files"), list):
+    def handle_payload(self, data, automation_config):
+        if self.is_sync_inventory_payload(data):
             self.handle_sync_inventory(data, automation_config)
             return
 
-        if isinstance(data.get("data"), list) and "path" in data:
+        if self.is_sync_package_payload(data):
             self.handle_sync_package_response(data, automation_config)
             return
 
-        self.emit(
-            f"Nenhuma rotina de sync aplicada para automation={automation_config['name']}.",
-            level="info",
+        self.emit_block(
+            f"MQTT SEM ROTINA | {automation_config['name']}",
+            [
+                f"type={data.get('type')}",
+                f"keys={sorted(list(data.keys()))}",
+            ],
+            level="warning",
         )
+
+    def should_handle_as_raw_package(self, topic, raw_payload, automation_config):
+        if topic != automation_config["topic_uc_to_broker"]:
+            return False
+
+        state = self.sync_state.get(automation_config["name"]) or {}
+        if not state.get("pending_path"):
+            return False
+
+        lines = [line.strip() for line in raw_payload.splitlines() if line.strip()]
+        if len(lines) <= 1:
+            return False
+
+        for line in lines:
+            if not line.startswith("{"):
+                return False
+            try:
+                parsed = json.loads(line)
+            except Exception:
+                return False
+
+            if not isinstance(parsed, dict):
+                return False
+
+        return True
+
+    def is_sync_inventory_payload(self, data):
+        return str(data.get("type", "")).strip().lower() == "sync_inventory" or isinstance(
+            data.get("files"), list
+        )
+
+    def is_sync_package_payload(self, data):
+        return "path" in data and isinstance(self.get_sync_package_lines(data), list)
+
+    def get_sync_package_lines(self, data):
+        for key in ("data", "lines", "items", "records"):
+            value = data.get(key)
+            if isinstance(value, list):
+                return value
+        return []
 
     def handle_sync_inventory(self, data, automation_config):
         files = data.get("files") or []
         normalized_files = []
 
         for item in files:
+            if not isinstance(item, dict):
+                continue
+
             path = item.get("path")
-            registers = item.get("registers", 0)
+            registers = int(item.get("registers", 0) or 0)
             if not path:
                 continue
 
             normalized_files.append(
                 {
                     "path": path,
-                    "registers": int(registers or 0),
+                    "registers": registers,
                 }
             )
 
@@ -175,139 +230,145 @@ class MqttListenerService:
             "pending_path": None,
             "pending_offset": 0,
             "pending_limit": self.PACKAGE_LIMIT,
-            "pending_retries": 0,
-            "current_talhao_id": None,
         }
 
-        self.emit_block(
-            f"SYNC INVENTORY | {automation_config['name']}",
-            [
-                f"Arquivos recebidos: {len(normalized_files)}",
-                "Lista:",
-                *[
-                    f"[{index}] path={item['path']} registers={item['registers']}"
-                    for index, item in enumerate(normalized_files)
-                ],
-            ],
+        logger.info(
+            "Inventario recebido. automation=%s folder=%s total_arquivos=%s",
+            automation_config["name"],
+            data.get("folder"),
+            len(normalized_files),
         )
+
+        if not normalized_files:
+            error_payload = {
+                "type": "sync_broker_error",
+                "status": "error",
+                "message": "Nenhum arquivo disponivel para sincronizacao",
+                "folder": data.get("folder"),
+                "total_files": 0,
+            }
+            logger.info(
+                "Inventario vazio recebido. automation=%s folder=%s",
+                automation_config["name"],
+                data.get("folder"),
+            )
+            self.publish(error_payload, automation_config["topic_broker_to_uc"])
+            logger.warning(
+                "UC notificado sobre inventario vazio. automation=%s topic=%s",
+                automation_config["name"],
+                automation_config["topic_broker_to_uc"],
+            )
+            return
 
         self.request_next_package(automation_config)
 
     def handle_sync_package_response(self, data, automation_config):
         state = self.sync_state.get(automation_config["name"])
         if not state:
-            self.emit(
-                f"Resposta de pacote recebida sem inventario ativo para {automation_config['name']}.",
-                level="warning",
-            )
-            return
-
-        current_file = self.get_current_file_state(automation_config)
-        if not current_file:
-            self.emit(
-                f"Resposta de pacote recebida sem arquivo atual para {automation_config['name']}.",
-                level="warning",
-            )
-            return
-
-        expected_path = state.get("pending_path")
-        expected_offset = int(state.get("pending_offset", 0) or 0)
-        current_index = int(state.get("current_file_index", 0) or 0)
-        if not expected_path:
             self.emit_block(
-                f"SYNC RESPONSE DESCARTADA | {automation_config['name']}",
+                f"SYNC PACKAGE SEM ESTADO | {automation_config['name']}",
                 [
-                    "Motivo: resposta sem pacote pendente.",
-                    f"current_file_index={current_index}",
-                    f"response_path={data.get('path')}",
-                    f"response_offset={data.get('offset')}",
+                    "Nenhum inventario ativo encontrado.",
+                    f"path={data.get('path')}",
                 ],
                 level="warning",
             )
             return
 
-        response_path = data.get("path")
-        if response_path != expected_path:
-            self.emit_block(
-                f"SYNC RESPONSE DESCARTADA | {automation_config['name']}",
-                [
-                    "Motivo: path diferente do esperado.",
-                    f"current_file_index={current_index}",
-                    f"expected_path={expected_path}",
-                    f"received_path={response_path}",
-                    f"expected_offset={expected_offset}",
-                    f"received_offset={data.get('offset')}",
-                ],
-                level="warning",
-            )
-            return
-
+        package_lines = self.get_sync_package_lines(data)
         offset = int(data.get("offset", 0) or 0)
-        count = int(data.get("count", 0) or 0)
+        count = int(data.get("count", len(package_lines)) or 0)
         has_more = bool(data.get("has_more"))
-        next_offset = offset + count
+        path = data.get("path")
 
-        if offset != expected_offset:
-            self.emit_block(
-                f"SYNC RESPONSE DESCARTADA | {automation_config['name']}",
-                [
-                    "Motivo: offset diferente do esperado.",
-                    f"current_file_index={current_index}",
-                    f"expected_path={expected_path}",
-                    f"received_path={response_path}",
-                    f"expected_offset={expected_offset}",
-                    f"received_offset={offset}",
-                ],
-                level="warning",
-            )
-            return
+        logger.info(
+            "Pacote JSON recebido. automation=%s path=%s offset=%s count=%s has_more=%s",
+            automation_config["name"],
+            path,
+            offset,
+            count,
+            has_more,
+        )
 
         state["pending_path"] = None
-        state["pending_retries"] = 0
-        talhao, total_saved = append_tracker_package(
-            file_path=response_path,
-            lines=data.get("data") or [],
-            clear_existing=(offset == 0),
-        )
-        state["current_talhao_id"] = getattr(talhao, "id", None)
-
-        self.emit_block(
-            f"SYNC RESPONSE OK | {automation_config['name']}",
-            [
-                f"current_file_index={current_index}",
-                f"talhao_id={state['current_talhao_id']}",
-                f"path={response_path}",
-                f"offset={offset}",
-                f"count={count}",
-                f"saved={total_saved}",
-                f"has_more={has_more}",
-                f"next_offset={next_offset}",
-            ],
-        )
 
         if has_more:
             self.request_package(
                 automation_config=automation_config,
-                path=response_path,
+                path=path,
+                offset=offset + count,
+                limit=self.PACKAGE_LIMIT,
+            )
+            return
+
+        state["current_file_index"] += 1
+        logger.info(
+            "Arquivo sincronizado. automation=%s path=%s proximo_indice=%s",
+            automation_config["name"],
+            path,
+            state["current_file_index"],
+        )
+        self.request_next_package(automation_config)
+
+    def handle_raw_package_response(self, raw_payload, automation_config):
+        state = self.sync_state.get(automation_config["name"])
+        current_file = self.get_current_file_state(automation_config)
+
+        if not state or not current_file:
+            self.emit_block(
+                f"SYNC RAW SEM ESTADO | {automation_config['name']}",
+                [
+                    "Pacote NDJSON recebido sem inventario ativo.",
+                ],
+                level="warning",
+            )
+            return
+
+        pending_path = state.get("pending_path")
+        offset = int(state.get("pending_offset", 0) or 0)
+        lines = [line.strip() for line in raw_payload.splitlines() if line.strip()]
+        line_count = len(lines)
+        expected_total = int(current_file.get("registers", 0) or 0)
+        next_offset = offset + line_count
+        has_more = next_offset < expected_total if expected_total > 0 else False
+        talhao = None
+        total_saved = 0
+
+        if lines:
+            talhao, total_saved = append_tracker_package(
+                file_path=pending_path,
+                lines=lines,
+                clear_existing=(offset == 0),
+            )
+
+        logger.info(
+            "Pacote NDJSON processado. automation=%s path=%s offset=%s recebidas=%s salvas=%s talhao_id=%s has_more=%s",
+            automation_config["name"],
+            pending_path,
+            offset,
+            line_count,
+            total_saved,
+            getattr(talhao, "id", None),
+            has_more,
+        )
+
+        state["pending_path"] = None
+
+        if has_more:
+            self.request_package(
+                automation_config=automation_config,
+                path=pending_path,
                 offset=next_offset,
                 limit=self.PACKAGE_LIMIT,
             )
             return
 
-        self.emit_block(
-            f"SYNC FILE DONE | {automation_config['name']}",
-            [
-                f"Arquivo concluido: {response_path}",
-                f"current_file_index antes do incremento={current_index}",
-                "Proximo passo real esperado: avisar UC para excluir o arquivo.",
-            ],
-        )
         state["current_file_index"] += 1
-        self.emit_block(
-            f"SYNC NEXT FILE | {automation_config['name']}",
-            [
-                f"current_file_index depois do incremento={state['current_file_index']}",
-            ],
+        logger.info(
+            "Arquivo sincronizado. automation=%s path=%s proximo_indice=%s",
+            automation_config["name"],
+            pending_path,
+            state["current_file_index"],
         )
         self.request_next_package(automation_config)
 
@@ -316,26 +377,25 @@ class MqttListenerService:
         state = self.sync_state.get(automation_config["name"]) or {}
 
         if not current_file:
-            self.emit_block(
-                f"SYNC FINISHED | {automation_config['name']}",
-                [
-                    "Nenhum arquivo pendente.",
-                    f"current_file_index={state.get('current_file_index')}",
-                    f"total_files={len(state.get('files') or [])}",
-                ],
+            completion_payload = {
+                "type": "sync_broker_finished",
+                "status": "success",
+                "message": "Sincronizacao concluida",
+                "total_files": len(state.get("files") or []),
+            }
+            logger.info(
+                "Sincronizacao finalizada. automation=%s total_files=%s",
+                automation_config["name"],
+                len(state.get("files") or []),
+            )
+            self.publish(completion_payload, automation_config["topic_broker_to_uc"])
+            logger.info(
+                "UC notificado sobre fim da sincronizacao. automation=%s topic=%s",
+                automation_config["name"],
+                automation_config["topic_broker_to_uc"],
             )
             return
 
-        self.emit_block(
-            f"SYNC REQUEST NEXT | {automation_config['name']}",
-            [
-                f"current_file_index={state.get('current_file_index')}",
-                f"path={current_file['path']}",
-                f"registers={current_file['registers']}",
-                f"offset=0",
-                f"limit={self.PACKAGE_LIMIT}",
-            ],
-        )
         self.request_package(
             automation_config=automation_config,
             path=current_file["path"],
@@ -348,15 +408,14 @@ class MqttListenerService:
         if not state:
             return None
 
-        current_index = state.get("current_file_index", 0)
+        current_index = int(state.get("current_file_index", 0) or 0)
         files = state.get("files") or []
-
         if current_index < 0 or current_index >= len(files):
             return None
 
         return files[current_index]
 
-    def request_package(self, automation_config, path, offset, limit, reset_retry=True): 
+    def request_package(self, automation_config, path, offset, limit):
         state = self.sync_state.setdefault(
             automation_config["name"],
             {
@@ -365,15 +424,11 @@ class MqttListenerService:
                 "pending_path": None,
                 "pending_offset": 0,
                 "pending_limit": self.PACKAGE_LIMIT,
-                "pending_retries": 0,
-                "current_talhao_id": None,
             },
         )
         state["pending_path"] = path
         state["pending_offset"] = offset
         state["pending_limit"] = limit
-        if reset_retry:
-            state["pending_retries"] = 0
 
         payload = {
             "type": "sync_broker_load_package",
@@ -381,77 +436,16 @@ class MqttListenerService:
             "offset": offset,
             "limit": limit,
         }
-        self.emit(
-            (
-                f"Solicitando pacote para {automation_config['name']}: "
-                f"path={path} offset={offset} limit={limit}"
-            )
+        logger.info(
+            "Solicitando pacote. automation=%s path=%s offset=%s limit=%s",
+            automation_config["name"],
+            path,
+            offset,
+            limit,
         )
         self.publish(payload, automation_config["topic_broker_to_uc"])
 
-    def retry_pending_package(self, automation_config):
-        state = self.sync_state.get(automation_config["name"])
-        current_file = self.get_current_file_state(automation_config)
-
-        if not state or not current_file:
-            self.emit(
-                f"Nao existe pacote pendente para repetir em {automation_config['name']}.",
-                level="warning",
-            )
-            return
-
-        pending_path = state.get("pending_path")
-        if not pending_path:
-            self.emit(
-                f"Nao existe path pendente para repetir em {automation_config['name']}.",
-                level="warning",
-            )
-            return
-
-        offset = int(state.get("pending_offset", 0) or 0)
-        limit = int(state.get("pending_limit", self.PACKAGE_LIMIT) or self.PACKAGE_LIMIT)
-        retries = int(state.get("pending_retries", 0) or 0) + 1
-        state["pending_retries"] = retries
-
-        if retries > self.MAX_RETRIES_PER_PACKAGE:
-            self.emit_block(
-                f"SYNC SKIP FILE | {automation_config['name']}",
-                [
-                    "Limite de retries por pacote atingido.",
-                    f"path={pending_path}",
-                    f"offset={offset}",
-                    f"limit={limit}",
-                    f"retry={retries}/{self.MAX_RETRIES_PER_PACKAGE}",
-                    "Arquivo atual sera abandonado e o fluxo seguira para o proximo.",
-                ],
-                level="warning",
-            )
-            state["pending_path"] = None
-            state["pending_retries"] = 0
-            state["current_file_index"] = int(state.get("current_file_index", 0) or 0) + 1
-            self.request_next_package(automation_config)
-            return
-
-        self.emit_block(
-            f"SYNC RETRY | {automation_config['name']}",
-            [
-                f"path={pending_path}",
-                f"offset={offset}",
-                f"limit={limit}",
-                f"current_file_index={state.get('current_file_index')}",
-                f"retry={retries}/{self.MAX_RETRIES_PER_PACKAGE}",
-            ],
-            level="warning",
-        )
-        self.request_package(
-            automation_config=automation_config,
-            path=pending_path,
-            offset=offset,
-            limit=limit,
-            reset_retry=False,
-        )
-
     def publish(self, payload, topic):
-        message = json.dumps(payload)
+        message = json.dumps(payload, ensure_ascii=False)
         result = self.client.publish(topic, message)
         logger.info("Mensagem MQTT publicada. topic=%s mid=%s", topic, getattr(result, "mid", None))

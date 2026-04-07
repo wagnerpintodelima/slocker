@@ -164,6 +164,8 @@ LOG_LEVEL = os.getenv("DJANGO_LOG_LEVEL", "INFO")
 LOG_DIR = BASE_DIR / "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
 
+file_handler_class = "logging.FileHandler" if os.name == "nt" else "logging.handlers.TimedRotatingFileHandler"
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -178,12 +180,11 @@ LOGGING = {
             "formatter": "verbose",
         },
         "file": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
+            "class": file_handler_class,
             "filename": str(LOG_DIR / "django.log"),
-            "when": "midnight",
-            "backupCount": 7,
             "formatter": "verbose",
             "encoding": "utf-8",
+            **({} if os.name == "nt" else {"when": "midnight", "backupCount": 7}),
         },
     },
     "root": {

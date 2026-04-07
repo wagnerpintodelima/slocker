@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -33,7 +34,7 @@ def process_tracker_file(talhao_id, file_path):
         items = []
 
         for line in lines:
-            parsed = parse_nmea_line(line, current_nmea_date)
+            parsed = parse_tracker_line(line, current_nmea_date)
             if not parsed:
                 continue
 
@@ -60,7 +61,7 @@ def process_tracker_file(talhao_id, file_path):
             total_saved = len(items)
 
         if total_saved == 0:
-            raise ValueError("Nenhuma linha NMEA valida foi encontrada no arquivo.")
+            raise ValueError("Nenhuma linha valida de tracker foi encontrada no arquivo.")
 
         talhao.status = TALHAO_STATUS_PROCESSED
         talhao.save(update_fields=["status"])
@@ -85,7 +86,16 @@ def get_or_create_talhao_by_tracker_path(file_path):
 
 
 def append_tracker_package(file_path, lines, clear_existing=False):
-    normalized_lines = [line.strip() for line in (lines or []) if str(line).strip()]
+    normalized_lines = []
+    for line in (lines or []):
+        if isinstance(line, dict):
+            normalized_line = json.dumps(line, ensure_ascii=False)
+        else:
+            normalized_line = str(line).strip()
+
+        if normalized_line:
+            normalized_lines.append(normalized_line)
+
     if not normalized_lines:
         return None, 0
 
@@ -118,7 +128,7 @@ def append_tracker_lines_to_talhao(talhao, lines):
     items = []
 
     for line in lines:
-        parsed = parse_nmea_line(line, current_nmea_date)
+        parsed = parse_tracker_line(line, current_nmea_date)
         if not parsed:
             continue
 
@@ -158,6 +168,14 @@ def get_last_nmea_date_for_talhao(talhao):
         return None
 
     return last_with_time.happened_at.strftime("%d%m%y")
+
+
+def parse_tracker_line(line, current_nmea_date=None):
+    parsed_json = parse_json_tracker_line(line)
+    if parsed_json:
+        return parsed_json
+
+    return parse_nmea_line(line, current_nmea_date)
 
 
 def parse_nmea_line(line, current_nmea_date=None):
@@ -203,6 +221,33 @@ def parse_nmea_line(line, current_nmea_date=None):
     }
 
 
+def parse_json_tracker_line(line):
+    if not line or not line.startswith("{"):
+        return None
+
+    try:
+        payload = json.loads(line)
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return None
+
+    lat = payload.get("lat")
+    lon = payload.get("lon")
+    if lat in (None, "") or lon in (None, ""):
+        return None
+
+    happened_at = parse_json_tracker_datetime(payload.get("ts"))
+
+    return {
+        "sentence_type": "JSON",
+        "latitude": safe_float_str(lat),
+        "longitude": safe_float_str(lon),
+        "satellites": safe_int(payload.get("sats")),
+        "speed": safe_float(payload.get("spd")),
+        "happened_at": happened_at,
+        "date_str": happened_at.strftime("%d%m%y") if happened_at else None,
+    }
+
+
 def parse_coordinate(value, hemisphere):
     if not value or not hemisphere:
         return None
@@ -217,6 +262,17 @@ def parse_coordinate(value, hemisphere):
             decimal *= -1
 
         return f"{decimal:.8f}"
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_json_tracker_datetime(value):
+    if not value:
+        return None
+
+    try:
+        base = datetime.strptime(str(value), "%d-%m-%y_%H-%M-%S")
+        return timezone.make_aware(base, timezone.get_current_timezone())
     except (TypeError, ValueError):
         return None
 
@@ -246,3 +302,17 @@ def safe_int(value):
         return int(value)
     except (TypeError, ValueError):
         return None
+
+
+def safe_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def safe_float_str(value):
+    numeric = safe_float(value)
+    if numeric is None:
+        return None
+    return f"{numeric:.8f}"

@@ -6,5 +6,6 @@ urlpatterns = [
     path('new/', v.newView, name="TrackerNewView"),
     path('new/proccess/', v.newAction, name="TrackerNewAction"),
     path('mapa/', v.mapView, name="TrackerMapView"),
+    path('mapa/points/', v.mapPointsView, name="TrackerMapPointsView"),
     path('delete/<int:talhao_id>/', v.deleteAction, name="TrackerDeleteAction"),
 ]

@@ -26,6 +26,13 @@
     position: relative;
   }
 
+  .tracker-map-toolbar {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2100;
+  }
+
   .tracker-map-shell.is-fullscreen {
     z-index: 2000;
     background: #ffffff;
@@ -38,8 +45,47 @@
   .tracker-map-shell.is-fullscreen #map {
     height: calc(100vh - 220px) !important;
   }
-</style>
-{% endblock %}
+
+  .tracker-progress-card {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border: 1px solid #dfe7e2;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #f7fbf8 100%);
+  }
+
+  .tracker-progress-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #5c6b62;
+    margin-bottom: 6px;
+  }
+
+  .tracker-progress-slider {
+    width: 100%;
+  }
+
+  .tracker-route-alert {
+    transition: all 0.2s ease;
+  }
+
+  .tracker-route-progress {
+    height: 6px;
+    margin-top: 8px;
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+	  .tracker-route-progress .progress-bar {
+	    transition: width 0.25s ease;
+	  }
+
+	  .tracker-details-panel.is-hidden {
+	    display: none;
+	  }
+	</style>
+	{% endblock %}
 
 {% block body %}
 <div class="pagetitle">
@@ -56,13 +102,41 @@
 <section class="section dashboard" id="app">
   <div class="row">
     <div class="col-lg-9 tracker-map-shell" id="trackerMapShell">
+      <div class="tracker-map-toolbar">
+        <a href="#" class="btn btn-secondary btn-sm shadow-sm" id="toggleMapFullscreen">
+          <i class="bi bi-fullscreen"></i> Maximizar mapa
+        </a>
+      </div>
       <div id="map" style="height: 500px;"></div>
+      <div class="tracker-progress-card">
+        <div class="tracker-progress-label">
+          <span id="progressCurrentLabel">Posicao: aguardando...</span>
+          <span id="progressTotalLabel">0 / {{ total_points }}</span>
+        </div>
+        <input type="range" class="form-range tracker-progress-slider" id="tripProgressSlider" min="0" max="0" value="0" step="1" disabled>
+      </div>
     </div>
 
     <div class="col-lg-3 tracker-sidebar" id="trackerSidebar" style="overflow-y: scroll; max-height: 500px;">
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">Pontos da Viagem (Tempo: {{ delta_time }} | Vel.Max: {{ max_speed }} km/h)</h5>
+          <div class="alert alert-warning small py-2 mb-3 tracker-route-alert" id="loadingStatus" role="alert">
+            <div id="loadingStatusMessage">
+              {% if talhao %}Preparando carregamento de {{ total_points }} pontos...{% else %}Nenhuma viagem selecionada.{% endif %}
+            </div>
+            <div class="progress tracker-route-progress" aria-hidden="true">
+              <div
+                class="progress-bar progress-bar-striped progress-bar-animated bg-warning"
+                id="loadingStatusProgressBar"
+                role="progressbar"
+                style="width: 0%;"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0">
+              </div>
+            </div>
+          </div>
 
           <div class="form-check">
             <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
@@ -86,25 +160,29 @@
             <input type="text" class="form-control" id="exampleFormControlInput2" placeholder="Longitude">
           </div>
 
-          <button class="btn btn-sm btn-primary mb-3" id="addPointButton" type="button">
-            <i class="bi bi-plus-circle"></i>  Adicionar Ponto
-          </button>
+	          <div class="d-flex gap-2 mb-3">
+	            <button class="btn btn-sm btn-primary flex-fill" id="addPointButton" type="button">
+	              <i class="bi bi-plus-circle"></i> Adicionar Ponto
+	            </button>
+	            <button class="btn btn-sm btn-secondary flex-fill" id="toggleDetailsButton" type="button">
+	              <i class="bi bi-list-ul"></i> Detalhes
+	            </button>
+	          </div>
 
-          <div id="pointList" class="list-group list-group-flush tracker-point-list"></div>
-        </div>
-      </div>
-    </div>
+	          <div id="trackerDetailsPanel" class="tracker-details-panel is-hidden">
+	            <div id="pointList" class="list-group list-group-flush tracker-point-list"></div>
+	            <button class="btn btn-sm btn-outline-secondary mt-3 w-100 d-none" id="loadMorePointsButton" type="button">
+	              Carregar mais pontos na lista
+	            </button>
+	          </div>
+	        </div>
+	      </div>
+	    </div>
 
     <div class="col-lg-12 mt-3">
       <a href="{% url 'TrackerIndexView' %}" class="btn btn-primary">
         <i class="bi bi-arrow-bar-left"></i> Voltar
       </a>
-
-      <a href="#" class="btn btn-secondary" id="toggleMapFullscreen">
-        <i class="bi bi-fullscreen"></i> Maximizar mapa
-      </a>
-
-
     </div>
   </div>
 </section>
@@ -114,7 +192,6 @@
 <script src="{% static 'backend/js/Carro/index.js' %}"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
-  const points = JSON.parse('{{ points_json|escapejs }}');
   const map = L.map('map');
   const pointList = document.getElementById('pointList');
   const rawCheckbox = document.getElementById('flexCheckDefault');
@@ -127,11 +204,40 @@
   const addPointButton = document.getElementById('addPointButton');
   const trackerMapShell = document.getElementById('trackerMapShell');
   const trackerSidebar = document.getElementById('trackerSidebar');
-  const toggleMapFullscreenButton = document.getElementById('toggleMapFullscreen');
-  const pointLayers = [];
+	  const toggleMapFullscreenButton = document.getElementById('toggleMapFullscreen');
+	  const toggleDetailsButton = document.getElementById('toggleDetailsButton');
+	  const loadingStatus = document.getElementById('loadingStatus');
+	  const loadingStatusMessage = document.getElementById('loadingStatusMessage');
+	  const loadingStatusProgressBar = document.getElementById('loadingStatusProgressBar');
+	  const loadMorePointsButton = document.getElementById('loadMorePointsButton');
+	  const trackerDetailsPanel = document.getElementById('trackerDetailsPanel');
+	  const tripProgressSlider = document.getElementById('tripProgressSlider');
+  const progressCurrentLabel = document.getElementById('progressCurrentLabel');
+  const progressTotalLabel = document.getElementById('progressTotalLabel');
+  const talhaoId = Number('{{ talhao.id|default:"0" }}');
+  const totalPoints = Number('{{ total_points|default:"0" }}');
+  const chunkSize = Number('{{ points_chunk_size|default:"500" }}');
+  const pointsUrl = "{% url 'TrackerMapPointsView' %}";
+  const points = [];
+  const listRenderQueue = [];
+  const allLatLngs = [];
   let manualPointLayer = null;
   let routeLine = null;
+  let startPointLayer = null;
+  let endPointLayer = null;
+  let focusedPointLayer = null;
   let isMapFullscreen = false;
+  let loadedPointCount = 0;
+  let nextOffset = 0;
+  let isFetchingPoints = false;
+	  let hasMorePoints = totalPoints > 0;
+	  let renderedListCount = 0;
+	  let selectedPointIndex = -1;
+	  let pendingSliderIndex = null;
+	  let sliderFrameRequest = null;
+	  let isDetailsVisible = false;
+
+  const LIST_RENDER_BATCH = 150;
 
   const startIcon = L.divIcon({
     className: '',
@@ -166,6 +272,18 @@
     document.querySelectorAll('.tracker-point-item').forEach((item, itemIndex) => {
       item.classList.toggle('active', itemIndex === index);
     });
+  };
+
+  const ensureFocusedPointLayer = (point, title) => {
+    const latlng = [point.lat, point.lng];
+
+    if (!focusedPointLayer) {
+      focusedPointLayer = L.marker(latlng).addTo(map).bindPopup(buildPopupContent(point, title));
+      return;
+    }
+
+    focusedPointLayer.setLatLng(latlng);
+    focusedPointLayer.setPopupContent(buildPopupContent(point, title));
   };
 
   const toggleInputMode = () => {
@@ -219,41 +337,116 @@
     return null;
   };
 
-  const buildPointTitle = (index) => (
-    index === 0 ? 'Largada' : index === points.length - 1 ? 'Chegada' : `Ponto ${index + 1}`
+  const buildPointTitle = (index, total = points.length) => (
+    index === 0 ? 'Largada' : index === total - 1 ? 'Chegada' : `Ponto ${index + 1}`
   );
 
-  const clearPointLayers = () => {
-    pointLayers.forEach(layer => map.removeLayer(layer));
-    pointLayers.length = 0;
-  };
-
-  const drawRoute = () => {
-    if (routeLine) {
-      map.removeLayer(routeLine);
-      routeLine = null;
-    }
+  const updateProgressUI = () => {
+    tripProgressSlider.max = Math.max(points.length - 1, 0);
+    progressTotalLabel.textContent = `${points.length} / ${totalPoints}`;
 
     if (!points.length) {
+      tripProgressSlider.value = 0;
+      tripProgressSlider.disabled = true;
+      progressCurrentLabel.textContent = 'Posicao: aguardando...';
       return;
     }
 
-    const latlngs = points.map(point => [point.lat, point.lng]);
-    routeLine = L.polyline(latlngs, {
-      color: '#198754',
-      weight: 4
-    }).addTo(map);
+    const safeIndex = Math.min(Math.max(selectedPointIndex, 0), points.length - 1);
+    tripProgressSlider.value = safeIndex;
+    tripProgressSlider.disabled = false;
+    progressCurrentLabel.textContent = `${buildPointTitle(safeIndex)}${points[safeIndex].happened_at ? ` | ${points[safeIndex].happened_at}` : ''}`;
   };
 
-  const renderPointList = () => {
-    pointList.innerHTML = '';
+  const updateLoadingStatus = (message) => {
+    loadingStatusMessage.textContent = message;
+  };
 
+  const updateLoadingProgress = (value) => {
+    const safeValue = Math.max(0, Math.min(100, Number(value) || 0));
+    loadingStatusProgressBar.style.width = `${safeValue}%`;
+    loadingStatusProgressBar.setAttribute('aria-valuenow', String(Math.round(safeValue)));
+  };
+
+  const setLoadingStatusState = (state, message, progressValue = null) => {
+    loadingStatus.classList.remove('alert-warning', 'alert-success', 'alert-danger');
+    loadingStatusProgressBar.classList.remove('bg-warning', 'bg-success', 'bg-danger', 'progress-bar-striped', 'progress-bar-animated');
+
+    if (state === 'success') {
+      loadingStatus.classList.add('alert-success');
+      loadingStatusProgressBar.classList.add('bg-success');
+    } else if (state === 'error') {
+      loadingStatus.classList.add('alert-danger');
+      loadingStatusProgressBar.classList.add('bg-danger');
+    } else {
+      loadingStatus.classList.add('alert-warning');
+      loadingStatusProgressBar.classList.add('bg-warning', 'progress-bar-striped', 'progress-bar-animated');
+    }
+
+    updateLoadingStatus(message);
+    if (progressValue !== null) {
+      updateLoadingProgress(progressValue);
+    }
+  };
+
+	  const updateLoadMoreButton = () => {
+	    const hasPendingListItems = renderedListCount < points.length;
+	    loadMorePointsButton.classList.toggle('d-none', !hasPendingListItems);
+	    loadMorePointsButton.disabled = !hasPendingListItems;
+	  };
+
+	  const updateDetailsButtonLabel = () => {
+	    toggleDetailsButton.innerHTML = isDetailsVisible
+	      ? '<i class="bi bi-eye-slash"></i> Esconder'
+	      : '<i class="bi bi-list-ul"></i> Detalhes';
+	  };
+
+	  const toggleDetailsPanel = () => {
+	    isDetailsVisible = !isDetailsVisible;
+	    trackerDetailsPanel.classList.toggle('is-hidden', !isDetailsVisible);
+	    updateDetailsButtonLabel();
+	  };
+
+  const ensureRouteLayer = () => {
+    if (!routeLine) {
+      routeLine = L.polyline([], {
+        color: '#198754',
+        weight: 4
+      }).addTo(map);
+    }
+  };
+
+  const refreshEndPointLayer = () => {
     if (!points.length) {
+      if (endPointLayer) {
+        map.removeLayer(endPointLayer);
+        endPointLayer = null;
+      }
+      return;
+    }
+
+    const lastPoint = points[points.length - 1];
+    if (endPointLayer) {
+      map.removeLayer(endPointLayer);
+    }
+
+    endPointLayer = L.marker([lastPoint.lat, lastPoint.lng], { icon: endIcon })
+      .addTo(map)
+      .bindPopup(buildPopupContent(lastPoint, buildPointTitle(points.length - 1, points.length)));
+  };
+
+  const appendPointListItems = (forceAll = false) => {
+    if (!points.length && !listRenderQueue.length) {
       pointList.innerHTML = '<div class="list-group-item">Nenhum ponto encontrado para esta viagem.</div>';
+      updateLoadMoreButton();
       return;
     }
 
-    points.forEach((point, index) => {
+    const batchLimit = forceAll ? listRenderQueue.length : Math.min(LIST_RENDER_BATCH, listRenderQueue.length);
+    const fragment = document.createDocumentFragment();
+
+    for (let i = 0; i < batchLimit; i += 1) {
+      const { point, index } = listRenderQueue.shift();
       const title = buildPointTitle(index);
       const button = document.createElement('button');
       button.type = 'button';
@@ -264,65 +457,97 @@
         `<small>Lat: ${point.lat} | Lng: ${point.lng}</small>`;
 
       button.addEventListener('click', () => {
-        setActiveItem(index);
-        map.setView([point.lat, point.lng], Math.max(map.getZoom(), 17), { animate: true });
-        pointLayers[index].openPopup();
+        focusPointByIndex(index);
       });
 
-      pointList.appendChild(button);
-    });
+      fragment.appendChild(button);
+      renderedListCount += 1;
+    }
+
+    pointList.appendChild(fragment);
+    updateLoadMoreButton();
   };
 
-  const renderPointsOnMap = () => {
-    clearPointLayers();
-
-    if (!points.length) {
+  const focusPointByIndex = (index, options = {}) => {
+    if (!points.length || index < 0 || index >= points.length) {
       return;
     }
 
-    points.forEach((point, index) => {
-      const title = buildPointTitle(index);
-      let layer;
+    const {
+      animate = true,
+      openPopup = true,
+      updateMapView = true,
+    } = options;
+    const point = points[index];
+    const title = buildPointTitle(index);
+    selectedPointIndex = index;
+    setActiveItem(index);
+    updateProgressUI();
+    ensureFocusedPointLayer(point, title);
 
-      if (index === 0) {
-        layer = L.marker([point.lat, point.lng], { icon: startIcon });
-      } else if (index === points.length - 1) {
-        layer = L.marker([point.lat, point.lng], { icon: endIcon });
-      } else {
-        layer = L.circleMarker([point.lat, point.lng], {
-          radius: 4,
-          color: '#0d6efd',
-          weight: 1,
-          fillColor: '#0d6efd',
-          fillOpacity: 0.8
-        });
+    if (updateMapView) {
+      map.panTo([point.lat, point.lng], { animate });
+    }
+
+    if (openPopup) {
+      focusedPointLayer.openPopup();
+    }
+  };
+
+  const scheduleSliderNavigation = (index) => {
+    pendingSliderIndex = index;
+
+    if (sliderFrameRequest !== null) {
+      return;
+    }
+
+    sliderFrameRequest = window.requestAnimationFrame(() => {
+      sliderFrameRequest = null;
+
+      if (pendingSliderIndex === null) {
+        return;
       }
 
-      layer.addTo(map).bindPopup(buildPopupContent(point, title));
-      pointLayers.push(layer);
+      focusPointByIndex(pendingSliderIndex, {
+        animate: false,
+        openPopup: false,
+        updateMapView: true,
+      });
+      pendingSliderIndex = null;
     });
   };
 
-  const refreshMap = (focusLastPoint = false) => {
-    drawRoute();
-    renderPointsOnMap();
-    renderPointList();
-
-    if (!points.length) {
-      map.setView([-25.4284, -49.2733], 5);
+  const appendPointsToMap = (newPoints) => {
+    if (!newPoints.length) {
       return;
     }
 
-    const latlngs = points.map(point => [point.lat, point.lng]);
-    map.fitBounds(latlngs, { padding: [20, 20] });
+    ensureRouteLayer();
 
-    const activeIndex = focusLastPoint ? points.length - 1 : 0;
-    setActiveItem(activeIndex);
+    newPoints.forEach((point, indexInBatch) => {
+      const globalIndex = points.length - newPoints.length + indexInBatch;
+      const latlng = [point.lat, point.lng];
+      allLatLngs.push(latlng);
+      routeLine.addLatLng(latlng);
+      listRenderQueue.push({ point, index: globalIndex });
 
-    if (focusLastPoint) {
-      map.setView([points[activeIndex].lat, points[activeIndex].lng], Math.max(map.getZoom(), 17), { animate: true });
-      pointLayers[activeIndex].openPopup();
+      if (globalIndex === 0 && !startPointLayer) {
+        startPointLayer = L.marker(latlng, { icon: startIcon })
+          .addTo(map)
+          .bindPopup(buildPopupContent(point, buildPointTitle(0, totalPoints || points.length)));
+      }
+    });
+
+    appendPointListItems();
+
+    if (allLatLngs.length === newPoints.length) {
+      map.fitBounds(allLatLngs, { padding: [20, 20] });
+    } else if (allLatLngs.length && loadedPointCount === totalPoints) {
+      map.fitBounds(allLatLngs, { padding: [20, 20] });
     }
+
+    refreshEndPointLayer();
+    updateProgressUI();
   };
 
   const updateFullscreenButtonLabel = () => {
@@ -343,20 +568,98 @@
     window.setTimeout(() => {
       map.invalidateSize();
 
-      if (points.length) {
-        const latlngs = points.map(point => [point.lat, point.lng]);
-        map.fitBounds(latlngs, { padding: [20, 20] });
+      if (allLatLngs.length) {
+        map.fitBounds(allLatLngs, { padding: [20, 20] });
       }
     }, 150);
   };
 
-  rawCheckbox.addEventListener('change', toggleInputMode);
-  toggleInputMode();
-  updateFullscreenButtonLabel();
+  const fetchPointChunk = async () => {
+    if (!talhaoId || isFetchingPoints || !hasMorePoints) {
+      return;
+    }
 
-  toggleMapFullscreenButton.addEventListener('click', (event) => {
-    event.preventDefault();
-    toggleMapFullscreen();
+    isFetchingPoints = true;
+    const loadingEnd = Math.min(nextOffset + chunkSize, totalPoints || nextOffset + chunkSize);
+    const currentProgress = totalPoints > 0 ? (loadedPointCount / totalPoints) * 100 : 0;
+    setLoadingStatusState('loading', `Carregando rota: pontos ${nextOffset + 1} - ${loadingEnd} de ${totalPoints}...`, currentProgress);
+
+    try {
+      const response = await fetch(`${pointsUrl}?talhao_id=${talhaoId}&offset=${nextOffset}&limit=${chunkSize}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Falha ao carregar pontos (${response.status})`);
+      }
+
+      const payload = await response.json();
+      const newPoints = Array.isArray(payload.points) ? payload.points : [];
+
+      points.push(...newPoints);
+      loadedPointCount = points.length;
+      nextOffset = payload.next_offset || loadedPointCount;
+      hasMorePoints = Boolean(payload.has_more);
+      const loadedProgress = totalPoints > 0 ? (loadedPointCount / totalPoints) * 100 : 100;
+
+      appendPointsToMap(newPoints);
+
+      if (loadedPointCount === 0) {
+        pointList.innerHTML = '<div class="list-group-item">Nenhum ponto encontrado para esta viagem.</div>';
+      }
+
+      if (hasMorePoints) {
+        setLoadingStatusState('loading', `Carregando rota: ${loadedPointCount} de ${totalPoints} pontos recebidos. O restante continua vindo em segundo plano...`, loadedProgress);
+        window.setTimeout(fetchPointChunk, 0);
+      } else if (loadedPointCount > 0) {
+        setLoadingStatusState('success', `Rota carregada com sucesso. ${loadedPointCount} pontos prontos para navegacao.`, 100);
+        if (selectedPointIndex < 0) {
+          selectedPointIndex = 0;
+        }
+        updateProgressUI();
+      } else {
+        setLoadingStatusState('error', 'Nenhum ponto com latitude/longitude foi encontrado para exibir.', 100);
+      }
+    } catch (error) {
+      console.error(error);
+      setLoadingStatusState('error', 'Nao foi possivel carregar os pontos do mapa.', 100);
+    } finally {
+      isFetchingPoints = false;
+      updateLoadMoreButton();
+    }
+  };
+
+  rawCheckbox.addEventListener('change', toggleInputMode);
+	  toggleInputMode();
+	  updateFullscreenButtonLabel();
+	  updateDetailsButtonLabel();
+	  updateLoadMoreButton();
+
+	  toggleMapFullscreenButton.addEventListener('click', (event) => {
+	    event.preventDefault();
+	    toggleMapFullscreen();
+	  });
+
+	  toggleDetailsButton.addEventListener('click', () => {
+	    toggleDetailsPanel();
+	  });
+
+  loadMorePointsButton.addEventListener('click', () => {
+    appendPointListItems(true);
+  });
+
+  tripProgressSlider.addEventListener('input', (event) => {
+    const nextIndex = Number(event.target.value);
+    scheduleSliderNavigation(nextIndex);
+  });
+
+  tripProgressSlider.addEventListener('change', (event) => {
+    const nextIndex = Number(event.target.value);
+    focusPointByIndex(nextIndex, {
+      animate: true,
+      openPopup: true,
+      updateMapView: true,
+    });
   });
 
   addPointButton.addEventListener('click', () => {
@@ -409,11 +712,13 @@
     manualPointLayer.openPopup();
   });
 
-  if (points.length) {
-    refreshMap();
+  if (talhaoId && totalPoints > 0) {
+    fetchPointChunk();
   } else {
     map.setView([-25.4284, -49.2733], 5);
-    renderPointList();
+    appendPointListItems();
+    updateProgressUI();
+    setLoadingStatusState('error', 'Nenhum ponto com latitude/longitude foi encontrado para exibir.', 100);
     L.popup()
       .setLatLng([-25.4284, -49.2733])
       .setContent('Nenhum ponto com latitude/longitude foi encontrado para exibir.')
