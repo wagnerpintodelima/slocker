@@ -5,7 +5,7 @@ import time
 import paho.mqtt.client as mqtt
 from django.conf import settings
 
-from backend.services.tracker_jobs import append_tracker_package
+from backend.services.tracker_jobs import append_tracker_package, parse_tracker_line
 
 
 logger = logging.getLogger(__name__)
@@ -173,18 +173,12 @@ class MqttListenerService:
             return False
 
         lines = [line.strip() for line in raw_payload.splitlines() if line.strip()]
-        if len(lines) <= 1:
+        if not lines:
             return False
 
         for line in lines:
-            if not line.startswith("{"):
-                return False
-            try:
-                parsed = json.loads(line)
-            except Exception:
-                return False
-
-            if not isinstance(parsed, dict):
+            parsed = parse_tracker_line(line)
+            if not parsed:
                 return False
 
         return True
