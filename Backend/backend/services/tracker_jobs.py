@@ -5,6 +5,7 @@ from pathlib import Path
 from django.db import transaction
 from django.utils import timezone
 
+from backend.Controller.BaseController import doLog
 from backend.models import Talhao, TalhaoChild
 
 
@@ -82,6 +83,11 @@ def get_or_create_talhao_by_tracker_path(file_path):
         status=TALHAO_STATUS_PENDING,
     )
     talhao.save()
+    doLog(
+        "+Talhao Tracker",
+        f"<b>AUTO MESSAGE</b> - Talhao #{talhao.id} criado automaticamente via MQTT para o arquivo <b>{talhao_name}</b>.",
+        2,
+    )
     return talhao, True
 
 
