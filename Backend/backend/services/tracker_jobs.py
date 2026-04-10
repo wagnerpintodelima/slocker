@@ -5,7 +5,6 @@ from pathlib import Path
 from django.db import transaction
 from django.utils import timezone
 
-from backend.Controller.BaseController import doLog
 from backend.models import Talhao, TalhaoChild
 
 
@@ -83,11 +82,6 @@ def get_or_create_talhao_by_tracker_path(file_path):
         status=TALHAO_STATUS_PENDING,
     )
     talhao.save()
-    doLog(
-        "+Talhao Tracker",
-        f"<b>AUTO MESSAGE</b> - Talhao #{talhao.id} criado automaticamente via MQTT para o arquivo <b>{talhao_name}</b>.",
-        2,
-    )
     return talhao, True
 
 
@@ -106,21 +100,24 @@ def append_tracker_package(file_path, lines, clear_existing=False):
         return None, 0
 
     with transaction.atomic():
-        talhao, _created = get_or_create_talhao_by_tracker_path(file_path)
+        talhao, created = get_or_create_talhao_by_tracker_path(file_path)
         talhao = Talhao.objects.select_for_update().get(pk=talhao.pk)
+        previous_count = TalhaoChild.objects.filter(talhao=talhao).count()
         talhao.status = TALHAO_STATUS_PROCESSING
         talhao.save(update_fields=["status"])
 
         if clear_existing:
             TalhaoChild.objects.filter(talhao=talhao).delete()
+            previous_count = 0
 
         total_saved = append_tracker_lines_to_talhao(talhao, normalized_lines)
+        current_count = previous_count + total_saved
 
         if total_saved > 0:
             talhao.status = TALHAO_STATUS_PROCESSED
             talhao.save(update_fields=["status"])
 
-    return talhao, total_saved
+    return talhao, total_saved, created, previous_count, current_count
 
 
 def mark_talhao_error(talhao_id):
