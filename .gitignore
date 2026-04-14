@@ -42,3 +42,5 @@ Backend/.vscode/launch.json
 Backend/backend/Controller/__pycache__/ApiAtronController.cpython-312.pyc
 Backend/backend/Routes/Automation/__pycache__/urls.cpython-312.pyc
 Backend/backend/Routes/Automation/__pycache__/urls.cpython-312.pyc
+Backend/logs/django.log
+.vscode/launch.json
