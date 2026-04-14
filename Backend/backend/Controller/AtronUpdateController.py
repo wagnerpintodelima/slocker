@@ -12,6 +12,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.text import get_valid_filename
 from backend.models import AtronUpdate
 from backend.Controller.BaseController import saveFile, deleteFile, downloadFile
 from django.core import serializers
@@ -52,18 +53,20 @@ def SaveAction(request):
         version_current = request.POST.get('version_current', None)
         description = request.POST.get('description', None)
         level = request.POST.get('level', None)                        
-        apk = request.FILES['apk']           
+        apk = request.FILES.get('apk', None)
         status = request.POST.get('status', 0)
 
         if not apk:
             messages.add_message(request, messages.ERROR, 'APK é obrigatório!')
             return redirect('atronUpdateView')                                            
+        
+        file_name = get_valid_filename(apk.name).rsplit('.', 1)[0]
 
         item = AtronUpdate()
         item.version_current = version_current
         item.description = description
         item.level = level
-        item.apk = saveFile(_PATH_FILE_APK, _FORMAT_FILE, apk)                
+        item.apk = saveFile(_PATH_FILE_APK, _FORMAT_FILE, apk, file_name)                
         item.status = status
         item.created_by = request.user.id
         item.created_at = datetime.datetime.now()
@@ -94,8 +97,6 @@ def editAction(request):
         level = request.POST.get('level', None)                        
         # Verifica se o arquivo 'apk' foi enviado
         apk = request.FILES.get('apk', None)
-        if apk:            
-            apk = request.FILES['apk']
         status = request.POST.get('status', 0)        
 
         item = AtronUpdate.objects.get(id=atron_id)
@@ -104,8 +105,9 @@ def editAction(request):
         item.level = level
         deletedOldFile = False
         if apk:
+            file_name = get_valid_filename(apk.name).rsplit('.', 1)[0]
             deletedOldFile = deleteFile(_PATH_FILE_APK, item.apk, _FORMAT_FILE)
-            item.apk = saveFile(_PATH_FILE_APK, 'zip', apk)
+            item.apk = saveFile(_PATH_FILE_APK, _FORMAT_FILE, apk, file_name)
         item.status = status
         item.updated_by = request.user.id
         item.updated_at = datetime.datetime.now()

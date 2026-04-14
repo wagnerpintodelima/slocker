@@ -83,76 +83,6 @@ def new(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def activeAction(request):
-
-    try:
-        dados = json.loads(request.body.decode('utf-8'))
-        authorization_header = request.headers.get('Authorization', None)
-        
-        if authorization_header != getHash():
-            # Fazer algo com o valor
-            return JsonResponse({
-                'status': 403,
-                'description': r"Forbidden! Be careful, we know where you are!"
-            })
-
-
-        # Acessando um valor específico | {"deviceNumber":"cf916da6509da698be4854f789b26c01","version":"v4.3.2","lat":"12132","lon":"3213","satellites": 10,"timestamp":"2024-10-03T14:30:00Z"}
-        deviceNumber = dados.get('deviceNumber', None)
-        version = dados.get('version', None)
-        lat = dados.get('lat', None)
-        lon = dados.get('lon', None)
-        satellites = dados.get('satellites', None)
-        timestamp = dados.get('timestamp', None)     
-        
-        if not deviceNumber or not version or not lat or not lon or not satellites:
-            return JsonResponse({
-                'status': 400,
-                'description': r"Mandatory parameters are missing"
-            })
-        
-        try:                                                
-            
-            item = AtronDeviceRegister.objects.get(device_number=deviceNumber)            
-            item.version_current = version
-            item.lat = lat
-            item.lon = lon
-            item.satellites = satellites
-            item.status = 1 # disponível
-            item.timestamp_in_gps = timestamp
-            item.updated_at = datetime.now()
-            item.save() 
-            
-            return JsonResponse({
-                'status': 200,
-                'description': f"Device activated with success!"
-            })
-        
-        except AtronDeviceRegister.DoesNotExist:
-            return JsonResponse({
-                'status': 404,
-                'description': r"Not Found!"
-            })
-        
-            
-        # Fazer algo com o valor
-        return JsonResponse({
-            'status': 200,
-            'description': 'Dados recebidos com sucesso'
-        })
-
-    except Exception as e:
-        context = {
-            'status': 500,
-            'description': str(e)
-        }
-
-
-    return HttpResponse(json.dumps(context, ensure_ascii=False), content_type="application/json")
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
 def handshake(request):
 
     try:
@@ -179,11 +109,12 @@ def handshake(request):
             })
         
         try:
+            
             atronDevice = AtronDevice.objects.get(atron_device_register__device_number=deviceNumber)  
             atronDevice.version_current = version
             atronDevice.save()          
             
-            if atronDevice.status == 0 or not atronDevice.atron_device_register.satellites:
+            if atronDevice.status == 0:
                 return JsonResponse({
                     'status': 2,
                     'description': f"Deactived"
@@ -206,7 +137,7 @@ def handshake(request):
                     
                 return JsonResponse({
                     'status': status,
-                    'description': fr'Há atualização disponível para seu Atron. Atualmente você está na versão: {version} e o sistema já evoluiu para a versão: {atronUpdateLastVersion.version_current}'
+                    'description': fr'Há atualização disponível para seu Agroline. Atualmente você está na versão: {version} e o sistema já evoluiu para a versão: {atronUpdateLastVersion.version_current}'
                 })
             
             return JsonResponse({
@@ -217,7 +148,7 @@ def handshake(request):
             
             
             
-        except AtronDeviceRegister.DoesNotExist:
+        except AtronDevice.DoesNotExist:
             return JsonResponse({
                 'status': 404,
                 'description': r"Not Found!"
@@ -232,11 +163,11 @@ def handshake(request):
 
     return HttpResponse(json.dumps(context, ensure_ascii=False), content_type="application/json")
 
-
+@csrf_exempt
 def showHash(request):
     
     context = {
-        'hash': 'Ei hacker, só aviso: Meus backups ressuscitam mais rápido que o Lázaro – boa sorte invadindo meu sistema!' #getHash()    
+        'hash': getHash()
     }
 
 

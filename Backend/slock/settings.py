@@ -19,12 +19,12 @@ MQTT_OPERATIONS_BASE_URL = os.getenv("MQTT_OPERATIONS_BASE_URL", "https://slock.
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-or90-4b_^h0w4j)%nld(2npov#-6y9+sm&t_)6f23!4!pmu6ly' # Os GPS antigos usam essa aqui, eventualmente vai ter que subir ela temporariamente
-# SECRET_KEY = 'Wagner&Felps-6669m)-f8u^x!3co4^61=$a5=^rp9zyegr9g_2h%z2z8e8_v1(yv%'
+SECRET_KEY_SMX = 'smainex-solucoesor90-4b_^h0w4j)%nld(2npov#-6y9+sm&t_)6f23!4!pmu6ly' # Os GPS antigos usam essa aqui, eventualmente vai ter que subir ela temporariamente
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['slock.com.br', 'www.slock.com.br', 'localhost', '127.0.0.1', '192.168.3.3']
+ALLOWED_HOSTS = ['slock.com.br', 'www.slock.com.br', 'localhost', '127.0.0.1', '192.168.1.120']
 
 BLACKLIST_USERS = [
     'mateusmarochi@gmail.com',
@@ -35,9 +35,16 @@ BLACKLIST_USERS = [
 CORS_ALLOWED_ORIGINS = [    
     "http://127.0.0.1:8000",
     "http://localhost:8000",
+    "http://192.168.1.120:8000",
+    "http://192.168.1.120:5500",
     'https://app.slock.com.br',
     'https://alarm.slock.com.br',
     'http://127.0.0.1:5500'
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://192.168.1.120:8000",
+    "http://192.168.1.120:5500",
 ]
 
 # Application definition
@@ -57,6 +64,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -64,8 +72,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'slock.urls'

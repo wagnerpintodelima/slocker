@@ -4,7 +4,7 @@ from django.core.files.storage import FileSystemStorage
 import os
 import hashlib
 import datetime
-from slock.settings import SECRET_KEY
+from slock.settings import SECRET_KEY_SMX as SECRET_KEY
 from django.http import FileResponse, Http404
 from django.conf import settings
 import base64
@@ -21,8 +21,7 @@ def saveFile(folder, format, file, name=None):
 
     fss = FileSystemStorage()
     file = fss.save(folder + name + '.' + format, file)
-    file_url = fss.url(file)
-    return name
+    return os.path.splitext(os.path.basename(file))[0]
 
 def saveFileBase64(folder, format, base64_file, name=None):
     
@@ -69,8 +68,7 @@ def getHash():
     ano = today.year        
     
     # Concatena os valores de data e chave secreta
-    data = f'{dia}-{mes}-{ano}-{SECRET_KEY}'    # Essa é para os gps antigos
-    # data = f'{ano}@{SECRET_KEY}!{dia}${mes}'    
+    data = f'{dia}-{mes}-{ano}-{SECRET_KEY}'    # Essa é para os gps antigos    
     
     # Gera o hash SHA-256
     hash_value = hashlib.sha256(data.encode()).hexdigest()
