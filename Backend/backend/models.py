@@ -360,7 +360,16 @@ class AtronDevice(models.Model):
     class Meta:
         managed = False
         db_table = 'atron_device'           
-        
+     
+     
+class AtronDownload(models.Model):        
+    device_number = models.CharField(max_length=255)    
+    token = models.CharField(max_length=512)        
+    created_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'atron_download'              
         
 class LogGate(models.Model):        
     client = models.ForeignKey('Client', models.DO_NOTHING, blank=True, null=True)    

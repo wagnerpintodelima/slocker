@@ -71,7 +71,7 @@ def getHash():
     data = f'{dia}-{mes}-{ano}-{SECRET_KEY}'    # Essa é para os gps antigos    
     
     # Gera o hash SHA-256
-    hash_value = hashlib.sha256(data.encode()).hexdigest()
+    hash_value = hashlib.sha256(data.encode()).hexdigest()  
     
     return hash_value
 
