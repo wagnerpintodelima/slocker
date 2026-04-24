@@ -143,6 +143,7 @@ def handshake(request):
             
             atronDevice.atron_device_register.lat = lat
             atronDevice.atron_device_register.lon = lon
+            atronDevice.atron_device_register.version_current = version
             atronDevice.atron_device_register.updated_at = timezone.now()
             atronDevice.atron_device_register.save()   
             
