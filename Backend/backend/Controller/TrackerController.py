@@ -32,6 +32,12 @@ def indexView(request):
         .values("talhao")
         .annotate(total_points=Count("id"))
     }
+    updated_by_talhao = {
+        item["talhao"]: item["last_child_created_at"]
+        for item in TalhaoChild.objects.filter(talhao_id__in=talhao_ids, status=1)
+        .values("talhao")
+        .annotate(last_child_created_at=Max("created_at"))
+    }
     time_by_talhao = {}
     for item in (
         TalhaoChild.objects.filter(
@@ -60,6 +66,7 @@ def indexView(request):
                 "job": jobs_by_talhao.get(talhao.id),
                 "total_points": points_by_talhao.get(talhao.id, 0),
                 "estimated_time": time_by_talhao.get(talhao.id, "--:--:--"),
+                "updated_at": updated_by_talhao.get(talhao.id),
             }
             for talhao in talhaos
         ]

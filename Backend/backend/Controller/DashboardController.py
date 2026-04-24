@@ -2,8 +2,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from backend.models import V2, Sensor, Tela, ViagemInstalacaoKitChild, AtronDevice, Log, Call, Tecnico, AuthUser, PosVenda
-from datetime import datetime
+from django.http import JsonResponse
+from backend.models import V2, Sensor, Tela, ViagemInstalacaoKitChild, AtronDevice, AtronDeviceRegister, Log, Call, Tecnico, AuthUser, PosVenda
+from datetime import datetime, timedelta
+import re
 
 @login_required
 def indexView(request):
@@ -42,3 +44,69 @@ def indexView(request):
     }
     
     return render(request, 'Dashboard/index.html', context)
+
+
+@login_required
+def mapaAgroLineView(request):
+    return render(request, 'Dashboard/mapaAgroLine.html')
+
+
+@login_required
+def mapaAgroLineDevicesAction(request):
+    updated_since = datetime.now() - timedelta(hours=24)
+    registers = (
+        AtronDeviceRegister.objects
+        .filter(status=0, updated_at__gte=updated_since)
+        .exclude(lat__isnull=True)
+        .exclude(lon__isnull=True)
+        .exclude(lat='')
+        .exclude(lon='')
+        .order_by('-updated_at')
+    )
+
+    def parse_coordinate(value):
+        if value is None:
+            return None
+
+        match = re.search(r'-?\d+(?:[,.]\d+)?', str(value))
+        if not match:
+            return None
+
+        try:
+            return float(match.group(0).replace(',', '.'))
+        except ValueError:
+            return None
+
+    devices = []
+    skipped = []
+    for register in registers:
+        latitude = parse_coordinate(register.lat)
+        longitude = parse_coordinate(register.lon)
+
+        if latitude is None or longitude is None:
+            skipped.append({
+                'id': register.id,
+                'device_number': register.device_number,
+                'lat': register.lat,
+                'lon': register.lon,
+            })
+            continue
+
+        devices.append({
+            'id': register.id,
+            'device_number': register.device_number,
+            'version_current': register.version_current,
+            'latitude': latitude,
+            'longitude': longitude,
+            'satellites': register.satellites,
+            'updated_at': register.updated_at.strftime('%d/%m/%Y %H:%M:%S') if register.updated_at else '',
+        })
+
+    return JsonResponse({
+        'status': 200,
+        'updated_at': datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
+        'total_found': registers.count(),
+        'total_skipped': len(skipped),
+        'skipped': skipped,
+        'devices': devices,
+    })

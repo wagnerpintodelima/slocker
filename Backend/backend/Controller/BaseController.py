@@ -4,7 +4,7 @@ from django.core.files.storage import FileSystemStorage
 import os
 import hashlib
 import datetime
-from slock.settings import SECRET_KEY_SMX as SECRET_KEY
+from slock.settings import SECRET_KEY_SMX, SECRET_KEY
 from django.http import FileResponse, Http404
 from django.conf import settings
 import base64
@@ -69,6 +69,22 @@ def getHash():
     
     # Concatena os valores de data e chave secreta
     data = f'{dia}-{mes}-{ano}-{SECRET_KEY}'    # Essa é para os gps antigos    
+    
+    # Gera o hash SHA-256
+    hash_value = hashlib.sha256(data.encode()).hexdigest()  
+    
+    return hash_value
+
+# Api's devem mandar esse hash no cabeçalho
+def getHashSMX():
+    # Obtém a data atual (dia, mês e ano)
+    today = datetime.datetime.now()
+    dia = today.day
+    mes = today.month
+    ano = today.year        
+    
+    # Concatena os valores de data e chave secreta
+    data = f'{dia}-{mes}-{ano}-{SECRET_KEY_SMX}'    # Essa é para os gps antigos    
     
     # Gera o hash SHA-256
     hash_value = hashlib.sha256(data.encode()).hexdigest()  

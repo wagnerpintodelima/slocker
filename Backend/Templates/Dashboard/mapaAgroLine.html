@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Página Inicial - Dashboards{% endblock %}
+
+{% block css %}
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin="">
+<style>
+  .mapa-agroline-container {
+    position: relative;
+    height: calc(100vh - 230px);
+    min-height: 500px;
+  }
+
+  .mapa-agroline-toolbar {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1000;
+  }
+
+  .mapa-agroline-status {
+    position: absolute;
+    left: 12px;
+    bottom: 24px;
+    z-index: 1000;
+    max-width: 320px;
+  }
+
+  .mapa-agroline-container.is-fullscreen {
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+    background: #ffffff;
+  }
+
+  #map {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="pagetitle">
+  <h1>AgroLine no Mundo</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+      <li class="breadcrumb-item active">AgroLine no Mundo</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+  <div class="row">    
+    
+    <div class="col-lg-12">
+      <div class="mapa-agroline-container" id="mapaAgroLineContainer">
+        <div class="mapa-agroline-toolbar">
+          <button class="btn btn-secondary btn-sm shadow-sm" id="toggleMapFullscreen" type="button">
+            <i class="bi bi-fullscreen"></i> Maximizar mapa
+          </button>
+        </div>
+        <div class="alert alert-light border shadow-sm py-2 px-3 mb-0 small mapa-agroline-status" id="mapaAgroLineStatus">
+          Carregando dispositivos...
+        </div>
+        <div id="map"></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'backend/vendor/apexcharts/apexcharts.min.js' %}"></script>
+<script src="{% static 'backend/vendor/echarts/echarts.min.js' %}"></script>
+<script src="{% static 'backend/vendor/simple-datatables/simple-datatables.js' %}"></script>
+<script src="{% static 'backend/vendor/quill/quill.min.js' %}"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const mapContainer = document.getElementById('mapaAgroLineContainer');
+    const toggleFullscreenButton = document.getElementById('toggleMapFullscreen');
+    const statusBox = document.getElementById('mapaAgroLineStatus');
+    const devicesUrl = "{% url 'mapaAgroLineDevicesAction' %}";
+	    const refreshIntervalMs = 5 *  1000;
+	    const map = L.map('map').setView([-26.755421, -42.857666], 6);
+	    const deviceMarkers = L.layerGroup().addTo(map);
+	    const markerColors = ['#0d6efd', '#198754', '#dc3545', '#fd7e14', '#6f42c1', '#20c997', '#d63384', '#ffc107'];
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors',
+      referrerPolicy: 'strict-origin-when-cross-origin'
+    }).addTo(map);
+
+    const updateMapSize = function () {
+      map.invalidateSize();
+    };
+
+	    const buildDevicePopup = function (device) {
+	      return '<strong>Dispositivo ' + device.device_number + '</strong><br>' +
+	        'Versao: ' + (device.version_current || '-') + '<br>' +
+	        'Latitude original: ' + device.latitude + '<br>' +
+	        'Longitude original: ' + device.longitude + '<br>' +
+	        'Satelites: ' + (device.satellites ?? '-') + '<br>' +
+	        'Atualizado em: ' + (device.updated_at || '-');
+	    };
+
+	    const createDeviceIcon = function (color, index) {
+	      return L.divIcon({
+	        className: '',
+	        html: '<div style="' +
+	          'width:22px;height:22px;border-radius:50%;' +
+	          'background:' + color + ';' +
+	          'border:3px solid #ffffff;' +
+	          'box-shadow:0 2px 8px rgba(0,0,0,0.35);' +
+	          'display:flex;align-items:center;justify-content:center;' +
+	          'color:#ffffff;font-size:10px;font-weight:700;' +
+	          '">' + (index + 1) + '</div>',
+	        iconSize: [22, 22],
+	        iconAnchor: [11, 11],
+	        popupAnchor: [0, -12]
+	      });
+	    };
+
+	    const getVisualPosition = function (device, devices) {
+	      const sameAreaDevices = devices.filter(function (item) {
+	        return Math.abs(item.latitude - device.latitude) < 0.0002 &&
+	          Math.abs(item.longitude - device.longitude) < 0.0002;
+	      });
+
+	      if (sameAreaDevices.length <= 1) {
+	        return [device.latitude, device.longitude];
+	      }
+
+	      const sameAreaIndex = sameAreaDevices.findIndex(function (item) {
+	        return item.id === device.id;
+	      });
+	      const angle = (2 * Math.PI * sameAreaIndex) / sameAreaDevices.length;
+	      const distance = 0.0012 + (Math.floor(sameAreaIndex / 8) * 0.0007);
+
+	      return [
+	        device.latitude + (Math.sin(angle) * distance),
+	        device.longitude + (Math.cos(angle) * distance)
+	      ];
+	    };
+
+	    const updateDevicesOnMap = function (devices) {
+	      deviceMarkers.clearLayers();
+	      const markerBounds = [];
+
+	      devices.forEach(function (device, index) {
+	        const markerColor = markerColors[index % markerColors.length];
+	        const visualPosition = getVisualPosition(device, devices);
+	        markerBounds.push(visualPosition);
+
+	        L.marker(visualPosition, {
+	          icon: createDeviceIcon(markerColor, index)
+	        })
+	          .addTo(deviceMarkers)
+	          .bindPopup(buildDevicePopup(device));
+	      });
+
+	      if (markerBounds.length === 1) {
+	        map.setView(markerBounds[0], Math.max(map.getZoom(), 12));
+	      } else if (markerBounds.length > 1) {
+	        map.fitBounds(markerBounds, {
+	          padding: [60, 60],
+	          maxZoom: 13
+	        });
+	      }
+	    };
+
+    const loadRecentDevices = function () {
+      statusBox.textContent = 'Atualizando dispositivos...';
+      const requestUrl = devicesUrl + '?_=' + new Date().getTime();
+
+      console.log('Buscando dispositivos AgroLine:', requestUrl);
+
+      $.ajax({
+        url: requestUrl,
+        method: 'GET',
+        dataType: 'json',
+        cache: false
+      })
+        .done(function (response) {
+          const devices = Array.isArray(response.devices) ? response.devices : [];
+
+          console.log(
+            'Dispositivos AgroLine recebidos:',
+            devices.length,
+            'Encontrados no banco:',
+            response.total_found,
+            'Ignorados:',
+            response.total_skipped,
+            response
+          );
+          updateDevicesOnMap(devices);
+          statusBox.textContent = devices.length + ' dispositivos nas ultimas 24h. Atualizado em ' + response.updated_at + '.';
+        })
+        .fail(function (xhr) {
+          console.error('Falha ao buscar dispositivos AgroLine:', xhr.status, xhr.responseText);
+          statusBox.textContent = 'Nao foi possivel atualizar os dispositivos.';
+        });
+    };
+
+    const updateFullscreenButton = function () {
+      const isFullscreen = document.fullscreenElement === mapContainer;
+
+      mapContainer.classList.toggle('is-fullscreen', isFullscreen);
+      toggleFullscreenButton.innerHTML = isFullscreen
+        ? '<i class="bi bi-fullscreen-exit"></i> Minimizar mapa'
+        : '<i class="bi bi-fullscreen"></i> Maximizar mapa';
+
+      setTimeout(updateMapSize, 150);
+    };
+
+    toggleFullscreenButton.addEventListener('click', async function () {
+      try {
+        if (document.fullscreenElement === mapContainer) {
+          await document.exitFullscreen();
+        } else {
+          await mapContainer.requestFullscreen();
+        }
+      } catch (error) {
+        console.error('Nao foi possivel alternar tela cheia do mapa.', error);
+      }
+    });
+
+    document.addEventListener('fullscreenchange', updateFullscreenButton);
+
+    setTimeout(updateMapSize, 100);
+    loadRecentDevices();
+    setInterval(loadRecentDevices, refreshIntervalMs);
+  });
+</script>
+
+{% endblock %}

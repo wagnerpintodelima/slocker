@@ -1080,6 +1080,7 @@ class Reserva(models.Model):
         
 class Talhao(models.Model):
     name = models.CharField(max_length=50)
+    trip_distance = models.FloatField(default=0)
     status = models.IntegerField()   # 0: Pendente, 1: Confirmada, 2: Cancelada 
     created_at = models.DateTimeField()
 

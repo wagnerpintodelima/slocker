@@ -28,6 +28,7 @@
                 <th scope="col">Pontos</th>
                 <th scope="col">Tempo</th>
                 <th scope="col">Data de Criacao</th>
+                <th scope="col">Atualizado em</th>
                 <th scope="col">Status</th>
                 <th scope="col">Acoes</th>
               </tr>
@@ -40,6 +41,7 @@
                   <td>{{ row.total_points }}</td>
                   <td>{{ row.estimated_time }}</td>
                   <td>{{ row.item.created_at }}</td>
+                  <td>{{ row.updated_at|default:row.item.created_at }}</td>
 	                  <td>
 	                    {% if row.item.status == 1 %}
 	                      <span class="badge bg-success">Processado</span>

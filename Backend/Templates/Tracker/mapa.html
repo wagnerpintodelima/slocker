@@ -113,6 +113,10 @@
           <span id="progressCurrentLabel">Posicao: aguardando...</span>
           <span id="progressTotalLabel">0 / {{ total_points }}</span>
         </div>
+        <div class="tracker-progress-label">
+          <span>Total percorrido no talhao</span>
+          <strong id="routeDistanceLabel">0 m</strong>
+        </div>
         <input type="range" class="form-range tracker-progress-slider" id="tripProgressSlider" min="0" max="0" value="0" step="1" disabled>
       </div>
     </div>
@@ -211,9 +215,10 @@
 	  const loadingStatusProgressBar = document.getElementById('loadingStatusProgressBar');
 	  const loadMorePointsButton = document.getElementById('loadMorePointsButton');
 	  const trackerDetailsPanel = document.getElementById('trackerDetailsPanel');
-	  const tripProgressSlider = document.getElementById('tripProgressSlider');
+  const tripProgressSlider = document.getElementById('tripProgressSlider');
   const progressCurrentLabel = document.getElementById('progressCurrentLabel');
   const progressTotalLabel = document.getElementById('progressTotalLabel');
+  const routeDistanceLabel = document.getElementById('routeDistanceLabel');
   const talhaoId = Number('{{ talhao.id|default:"0" }}');
   const totalPoints = Number('{{ total_points|default:"0" }}');
   const chunkSize = Number('{{ points_chunk_size|default:"500" }}');
@@ -232,10 +237,11 @@
   let isFetchingPoints = false;
 	  let hasMorePoints = totalPoints > 0;
 	  let renderedListCount = 0;
-	  let selectedPointIndex = -1;
-	  let pendingSliderIndex = null;
-	  let sliderFrameRequest = null;
-	  let isDetailsVisible = false;
+  let selectedPointIndex = -1;
+  let pendingSliderIndex = null;
+  let sliderFrameRequest = null;
+  let isDetailsVisible = false;
+  let routeDistanceMeters = 0;
 
   const LIST_RENDER_BATCH = 150;
 
@@ -340,6 +346,38 @@
   const buildPointTitle = (index, total = points.length) => (
     index === 0 ? 'Largada' : index === total - 1 ? 'Chegada' : `Ponto ${index + 1}`
   );
+
+  const toRadians = (value) => value * (Math.PI / 180);
+
+  const calculateDistanceMeters = (firstPoint, secondPoint) => {
+    const earthRadiusMeters = 6371000;
+    const firstLat = toRadians(firstPoint.lat);
+    const secondLat = toRadians(secondPoint.lat);
+    const deltaLat = toRadians(secondPoint.lat - firstPoint.lat);
+    const deltaLng = toRadians(secondPoint.lng - firstPoint.lng);
+    const a =
+      Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+      Math.cos(firstLat) * Math.cos(secondLat) *
+      Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return earthRadiusMeters * c;
+  };
+
+  const formatDistance = (meters) => {
+    if (meters >= 1000) {
+      return `${(meters / 1000).toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })} km`;
+    }
+
+    return `${Math.round(meters).toLocaleString('pt-BR')} m`;
+  };
+
+  const updateRouteDistanceUI = () => {
+    routeDistanceLabel.textContent = formatDistance(routeDistanceMeters);
+  };
 
   const updateProgressUI = () => {
     tripProgressSlider.max = Math.max(points.length - 1, 0);
@@ -526,7 +564,13 @@
 
     newPoints.forEach((point, indexInBatch) => {
       const globalIndex = points.length - newPoints.length + indexInBatch;
+      const previousPoint = globalIndex > 0 ? points[globalIndex - 1] : null;
       const latlng = [point.lat, point.lng];
+
+      if (previousPoint) {
+        routeDistanceMeters += calculateDistanceMeters(previousPoint, point);
+      }
+
       allLatLngs.push(latlng);
       routeLine.addLatLng(latlng);
       listRenderQueue.push({ point, index: globalIndex });
@@ -548,6 +592,7 @@
 
     refreshEndPointLayer();
     updateProgressUI();
+    updateRouteDistanceUI();
   };
 
   const updateFullscreenButtonLabel = () => {
@@ -634,6 +679,7 @@
 	  updateFullscreenButtonLabel();
 	  updateDetailsButtonLabel();
 	  updateLoadMoreButton();
+  updateRouteDistanceUI();
 
 	  toggleMapFullscreenButton.addEventListener('click', (event) => {
 	    event.preventDefault();

@@ -19,7 +19,7 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.conf import settings
-from backend.Controller.BaseController import getHash
+from backend.Controller.BaseController import getHashSMX as getHash
 from backend.Controller.BaseController import downloadFile
 
 _PATH_FILE_APK = 'backend/upload/atron/update/apk/'
@@ -138,10 +138,12 @@ def handshake(request):
             
             atronDevice = AtronDevice.objects.get(atron_device_register__device_number=deviceNumber)  
             atronDevice.version_current = version
+            atronDevice.updated_at = timezone.now()
             atronDevice.save()       
             
             atronDevice.atron_device_register.lat = lat
             atronDevice.atron_device_register.lon = lon
+            atronDevice.atron_device_register.updated_at = timezone.now()
             atronDevice.atron_device_register.save()   
             
             if atronDevice.status == 0:
