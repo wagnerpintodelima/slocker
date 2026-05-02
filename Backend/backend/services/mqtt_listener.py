@@ -446,7 +446,7 @@ class MqttListenerService:
             )
             
             # Isso aqui faz o uc excluir os arquivos temporarios e liberar recursos relacionados a sincronizacao
-            #self.publish(completion_payload, automation_config["topic_broker_to_uc"])
+            self.publish(completion_payload, automation_config["topic_broker_to_uc"])
             
             logger.info(
                 "UC notificado sobre fim da sincronizacao. automation=%s topic=%s",
