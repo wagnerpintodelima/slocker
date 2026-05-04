@@ -226,8 +226,10 @@
   const points = [];
   const listRenderQueue = [];
   const allLatLngs = [];
+  const routeSegments = [];
   let manualPointLayer = null;
   let routeLine = null;
+  let currentRouteSegment = null;
   let startPointLayer = null;
   let endPointLayer = null;
   let focusedPointLayer = null;
@@ -244,6 +246,7 @@
   let routeDistanceMeters = 0;
 
   const LIST_RENDER_BATCH = 150;
+  const MAX_CONNECTED_POINT_DISTANCE_METERS = 250;
 
   const startIcon = L.divIcon({
     className: '',
@@ -454,6 +457,15 @@
     }
   };
 
+  const appendRoutePoint = (latlng, shouldConnectToPrevious) => {
+    if (!currentRouteSegment || !shouldConnectToPrevious) {
+      currentRouteSegment = [];
+      routeSegments.push(currentRouteSegment);
+    }
+
+    currentRouteSegment.push(latlng);
+  };
+
   const refreshEndPointLayer = () => {
     if (!points.length) {
       if (endPointLayer) {
@@ -566,13 +578,19 @@
       const globalIndex = points.length - newPoints.length + indexInBatch;
       const previousPoint = globalIndex > 0 ? points[globalIndex - 1] : null;
       const latlng = [point.lat, point.lng];
+      let shouldConnectToPrevious = true;
 
       if (previousPoint) {
-        routeDistanceMeters += calculateDistanceMeters(previousPoint, point);
+        const distanceFromPrevious = calculateDistanceMeters(previousPoint, point);
+        shouldConnectToPrevious = distanceFromPrevious <= MAX_CONNECTED_POINT_DISTANCE_METERS;
+
+        if (shouldConnectToPrevious) {
+          routeDistanceMeters += distanceFromPrevious;
+        }
       }
 
       allLatLngs.push(latlng);
-      routeLine.addLatLng(latlng);
+      appendRoutePoint(latlng, shouldConnectToPrevious);
       listRenderQueue.push({ point, index: globalIndex });
 
       if (globalIndex === 0 && !startPointLayer) {
@@ -581,6 +599,8 @@
           .bindPopup(buildPopupContent(point, buildPointTitle(0, totalPoints || points.length)));
       }
     });
+
+    routeLine.setLatLngs(routeSegments);
 
     appendPointListItems();
 
