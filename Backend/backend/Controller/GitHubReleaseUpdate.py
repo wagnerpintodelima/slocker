@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import sys
 import tempfile
 import threading
 import uuid
@@ -19,6 +20,15 @@ from backend.models import AtronUpdate
 REPOSITORY = os.getenv('AGROLINE_GITHUB_REPOSITORY', 'wagnerpintodelima/plan')
 _lock = threading.Lock()
 _slots = threading.BoundedSemaphore(4)
+
+
+
+def log_update(message):
+    # Preserve Unicode on UTF-8 terminals, escape unsupported characters on ASCII.
+    encoding = getattr(sys.stdout, 'encoding', None) or 'utf-8'
+    text = ('[GitHub update] ' + str(message)).encode(
+        encoding, errors='backslashreplace').decode(encoding)
+    print(text, flush=True)
 
 
 def parse_version(version):
@@ -38,14 +48,14 @@ def newer_than_registered(version):
         if parsed is None:
             raise ValueError(f'Versão cadastrada inválida: {saved!r}; confira antes de importar.')
         if current <= parsed:
-            print(f'[GitHub update] {version} ignorada: já existe {saved}.', flush=True)
+            log_update(f'{version} ignorada: já existe {saved}.')
             return False
     return True
 
 
 def import_release(version):
     if parse_version(version) is None:
-        print(f'[GitHub update] Versão inválida: {version!r}. Esperado vX.Y.Z.', flush=True)
+        log_update(f'Versão inválida: {version!r}. Esperado vX.Y.Z.')
         return
     
     # Serializes downloads in this process; database lock below covers other workers.
@@ -57,7 +67,7 @@ def import_release(version):
             if not newer_than_registered(version):
                 return
             url = f'https://github.com/{REPOSITORY}/releases/download/{version}/AgroLine.apk'
-            print(f'[GitHub update] Baixando {url}', flush=True)
+            log_update(f'Baixando {url}')
             folder = Path(settings.MEDIA_ROOT) / 'backend/upload/atron/update/apk'
             folder.mkdir(parents=True, exist_ok=True)
             with tempfile.TemporaryDirectory(prefix='github-', dir=folder) as work:
@@ -95,9 +105,9 @@ def import_release(version):
                         created_by=actor, updated_by=actor,
                     )
                 registered = True
-                print(f'[GitHub update] {version} cadastrada com status=0. ZIP: {final_zip.name}', flush=True)
+                log_update(f'{version} cadastrada com status=0. ZIP: {final_zip.name}')
         except Exception as exc:
-            print(f'[GitHub update] Falha ao importar {version}: {exc}', flush=True)
+            log_update(f'Falha ao importar {version}: {exc}')
         finally:
             if final_zip is not None and not registered:
                 final_zip.unlink(missing_ok=True)

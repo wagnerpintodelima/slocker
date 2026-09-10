@@ -390,7 +390,7 @@ def version_to_number(version_str):
 @require_http_methods(["POST"])
 def newRealeseGitHub(request):
     
-    from backend.Controller.GitHubReleaseUpdate import REPOSITORY, parse_version, start_release
+    from backend.Controller.GitHubReleaseUpdate import REPOSITORY, log_update, parse_version, start_release
     
     try:
         dados = json.loads(request.body.decode('utf-8'))
@@ -414,7 +414,7 @@ def newRealeseGitHub(request):
         version = release.get('tag_name')
         
         if parse_version(version) is None:
-            print(f'[GitHub update] Versão inválida: {version!r}', flush=True)
+            log_update(f'Versão inválida: {version!r}')
             return JsonResponse({'status': 0, 'description': 'Versão deve seguir vX.Y.Z'}, status=400)
         
         if not start_release(version):
