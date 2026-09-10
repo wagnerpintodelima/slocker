@@ -7,4 +7,5 @@ urlpatterns = [
     # path('show', api.showHash, name="ApiAtronShowHash"), # Recebe os logs
     path('token', api.token, name="ApiAgrolineToken"), # Pega o token para o download
     path('download', api.download, name="ApiAgrolineDownload"), # Pega o token para o download
+    path('new/release/github', api.newRealeseGitHub, name="ApiAgrolineNewRealeaseGitHub"), # Recebe dados do webwook do github
 ]

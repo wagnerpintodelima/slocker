@@ -27,7 +27,7 @@ _FORMAT_FILE = 'zip'
 _CHECKSUM_ALGORITHM = 'sha256'
 
 def get_last_update_checksum():
-    item = AtronUpdate.objects.order_by('-id').first()
+    item = AtronUpdate.objects.filter(status=1).order_by('-id').first()
 
     if not item:
         return None, None
@@ -355,7 +355,9 @@ def download(request):
                     'description': r"Forbidden! Invalid token."
                 })
             else:
-                item = AtronUpdate.objects.order_by('-id').first()
+                item = AtronUpdate.objects.filter(status=1).order_by('-id').first()
+                if item is None:
+                    return JsonResponse({'status': 404, 'description': 'Nenhuma atualização liberada'}, status=404)
                 response = downloadFile(_PATH_FILE_APK, item.apk, _FORMAT_FILE)
                 return response
             
@@ -383,3 +385,42 @@ def version_to_number(version_str):
     
     return version_number
 
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def newRealeseGitHub(request):
+    
+    from backend.Controller.GitHubReleaseUpdate import REPOSITORY, parse_version, start_release
+    
+    try:
+        dados = json.loads(request.body.decode('utf-8'))
+        event = request.headers.get('X-GitHub-Event')
+        if event == 'ping':
+            return JsonResponse({'status': 1, 'description': 'Ping recebido'})
+        if not isinstance(dados, dict):
+            raise ValueError('Esperado um objeto JSON')
+        
+        release = dados.get('release') or {}
+        repository = dados.get('repository') or {}
+        
+        if not isinstance(release, dict) or not isinstance(repository, dict):
+            raise ValueError('Release ou repository inválido')
+        
+        if (event != 'release' or dados.get('action') not in ('published', 'edited', 'released')
+                or repository.get('full_name') != REPOSITORY
+                or release.get('draft') or release.get('prerelease')):
+            return JsonResponse({'status': 1, 'description': 'Evento ignorado'})
+        
+        version = release.get('tag_name')
+        
+        if parse_version(version) is None:
+            print(f'[GitHub update] Versão inválida: {version!r}', flush=True)
+            return JsonResponse({'status': 0, 'description': 'Versão deve seguir vX.Y.Z'}, status=400)
+        
+        if not start_release(version):
+            return JsonResponse({'status': 0, 'description': 'Importações ocupadas; tente novamente'}, status=503)
+        
+        return JsonResponse({'status': 1, 'description': 'Processamento iniciado', 'version': version}, status=202)
+    
+    except (ValueError, UnicodeDecodeError) as exc:
+        return JsonResponse({'status': 0, 'description': str(exc)}, status=400)
