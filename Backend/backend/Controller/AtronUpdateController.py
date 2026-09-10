@@ -9,7 +9,7 @@ from django.core.serializers import serialize
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.core import signing
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -144,29 +144,11 @@ def deleteAction(request, atron_id):
 
     return HttpResponse(json.dumps(context, ensure_ascii=False), content_type="application/json")
 
-def downloadAPKAction(request, token):
-    pass
-    ##### zuada tem que arrumar isso aqui
-    
-    # Verificar se está liberada
-    # atron = AtronUpdate.objects.all().order_by('-id').first()
-    # if timezone.now() - atron.updated_at > timedelta(minutes=10):
-    #     doLog('Atron Update', fr'Houve uma tentativa de download da APK do Atron sem liberar no sistema', 0) # error
-    #     return redirect('https://www.cut.org.br/')
-
-    # try:  
-    #     # validar token
-    #     if not existsToken(deviceNumber=None, token=token):
-    #         doLog('Atron Update', fr'Houve uma tentativa de download da APK do Atron com um token inválido: {token}', 0) # error
-    #         return redirect('https://www.cut.org.br/')
-        
-    #     item = AtronUpdate.objects.order_by('-id').first()
-    #     response = downloadFile(_PATH_FILE_APK, item.apk, _FORMAT_FILE)
-    #     return response
-    
-    # except Exception as e:
-    #     messages.add_message(request, messages.ERROR, 'Não há essa APK no servidor, verificar se não foi "upada" no localhost!')
-    #     return redirect('atronUpdateView')
+@login_required
+@require_http_methods(["GET"])
+def downloadAPKAction(request, atron_id):
+    item = get_object_or_404(AtronUpdate, id=atron_id)
+    return downloadFile(_PATH_FILE_APK, item.apk, _FORMAT_FILE)
 
 @login_required    
 def habilitarDownloadSecurity(request):
