@@ -25,7 +25,10 @@ def atendimentoAction(request):
     dados = []
     
     for authUser in authUsers:
-        tecnico = Tecnico.objects.get(user_auth=authUser)                
+        try:
+            tecnico = Tecnico.objects.get(user_auth=authUser)
+        except Tecnico.DoesNotExist:
+            continue
         
         today = datetime.datetime.now()
         today = today.replace(hour=23, minute=0, second=0, microsecond=0)
@@ -68,13 +71,14 @@ def atendimentoAction(request):
     # 'wagner@autenpro.com.br'
         
     gerentes = [        
-        'wagner@autenpro.com.br',        
-        'jordaofelps@gmail.com',
-        'marcelo_mrl.2010@hotmail.com',
-        'douglassci20@gmail.com',
-        'auten.automacaoetecnologia@gmail.com',
-        'douglas@autenpro.com.br'
+        'wagner@smainex.com.br'
     ]
+    
+    # gerentes = [        
+    #         'wagner@smainex.com.br',
+    #         'alinenetto.dprh@gmail.com',
+    #         'pvlira88@gmail.com'
+    # ]
     
     for email in gerentes:
     
@@ -114,7 +118,10 @@ def test(request):
     dados = []
     
     for authUser in authUsers:
-        tecnico = Tecnico.objects.get(user_auth=authUser)
+        try:
+            tecnico = Tecnico.objects.get(user_auth=authUser)
+        except Tecnico.DoesNotExist:
+            continue
         calls = Call.objects.exclude(status=1).filter(tecnico=tecnico)
         
         dados.append({
