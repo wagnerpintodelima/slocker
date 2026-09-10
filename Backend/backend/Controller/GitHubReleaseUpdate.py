@@ -17,7 +17,7 @@ from django.utils import timezone
 from backend.models import AtronUpdate
 
 
-REPOSITORY = os.getenv('AGROLINE_GITHUB_REPOSITORY', 'wagnerpintodelima/plan')
+REPOSITORY = os.getenv('AGROLINE_GITHUB_REPOSITORY', 'wagnerpintodelima/AgroLine')
 _lock = threading.Lock()
 _slots = threading.BoundedSemaphore(4)
 
