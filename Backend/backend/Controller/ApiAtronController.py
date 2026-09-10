@@ -391,6 +391,7 @@ def version_to_number(version_str):
 def newRealeseGitHub(request):
     
     from backend.Controller.GitHubReleaseUpdate import REPOSITORY, log_update, parse_version, start_release
+    from backend.Controller.ReleaseDescription import release_description
     
     try:
         dados = json.loads(request.body.decode('utf-8'))
@@ -417,7 +418,14 @@ def newRealeseGitHub(request):
             log_update(f'Versão inválida: {version!r}')
             return JsonResponse({'status': 0, 'description': 'Versão deve seguir vX.Y.Z'}, status=400)
         
-        if not start_release(version):
+        description = release.get('body')
+        if description is None:
+            description = ''
+        if not isinstance(description, str):
+            raise ValueError('O body da release deve ser texto')
+        description = release_description(description)
+
+        if not start_release(version, description, dados.get('action')):
             return JsonResponse({'status': 0, 'description': 'Importações ocupadas; tente novamente'}, status=503)
         
         return JsonResponse({'status': 1, 'description': 'Processamento iniciado', 'version': version}, status=202)

@@ -315,7 +315,7 @@ class Slot(models.Model):
         
 class AtronUpdate(models.Model):        
     version_current = models.CharField(max_length=30)
-    description = models.CharField(max_length=255)    
+    description = models.TextField()
     apk = models.CharField(max_length=255)        
     level = models.IntegerField() #0: Normal, 1: Urgente e 2: Forced
     status = models.IntegerField()

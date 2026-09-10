@@ -53,7 +53,7 @@ def newer_than_registered(version):
     return True
 
 
-def import_release(version):
+def import_release(version, description='', action='published'):
     if parse_version(version) is None:
         log_update(f'Versão inválida: {version!r}. Esperado vX.Y.Z.')
         return
@@ -64,6 +64,10 @@ def import_release(version):
         final_zip = None
         registered = False
         try:
+            if action == 'edited':
+                count = AtronUpdate.objects.filter(version_current=version).update(description=description)
+                log_update(f'{version}: descricao atualizada em {count} registro(s).')
+                return
             if not newer_than_registered(version):
                 return
             url = f'https://github.com/{REPOSITORY}/releases/download/{version}/AgroLine.apk'
@@ -100,7 +104,7 @@ def import_release(version):
                     now = timezone.now()
                     actor = int(os.getenv('AGROLINE_GITHUB_USER_ID', '0'))
                     AtronUpdate.objects.create(
-                        version_current=version, description=f'GitHub release {version}',
+                        version_current=version, description=description,
                         apk=name, level=0, status=0, created_at=now, updated_at=now,
                         created_by=actor, updated_by=actor,
                     )
@@ -114,17 +118,17 @@ def import_release(version):
             close_old_connections()
 
 
-def start_release(version):
+def start_release(version, description='', action='published'):
     if not _slots.acquire(blocking=False):
         return False
 
-    def run(received_version):
+    def run(received_version, received_description, received_action):
         try:
-            import_release(received_version)
+            import_release(received_version, received_description, received_action)
         finally:
             _slots.release()
 
-    worker = threading.Thread(target=run, args=(version,),
+    worker = threading.Thread(target=run, args=(version, description, action),
                               name=f'github-release-{version}', daemon=True)
     try:
         worker.start()
