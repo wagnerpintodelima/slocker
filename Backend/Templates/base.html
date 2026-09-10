@@ -12,11 +12,7 @@
 
     <!-- Favicons -->
     
-    {% if request.user.id != 5 and request.user.id != 7 %} 
-    <link href="{% static 'backend/img/32x32.png' %}" rel="icon">
-    {% else %}
-    <link href="{% static 'backend/img/favicon.png' %}" rel="icon">
-    {% endif %}
+    <link href="{% static 'backend/img/32x32.png' %}" rel="icon">    
 
     <link href="{% static 'backend/img/apple-touch-icon.png' %}" rel="apple-touch-icon">
 
@@ -131,18 +127,10 @@
 
         <div class="d-flex align-items-center justify-content-between">
             <a href="{% url 'indexView' %}" class="logo d-flex align-items-center">
-                {% if request.user.id != 5 and request.user.id != 7 %} 
-                    <img src="{% static 'backend/img/logo_smainex.png' %}" alt="Logo da Empresa Smainex" width="50px">
-                {% else %}
-                    <img src="{% static 'backend/img/logo.png' %}" alt="Logo da Empresa Auten PRO" width="50px">
-                {% endif %}
+                <img src="{% static 'backend/img/logo_smainex.png' %}" alt="Logo da Empresa Smainex" width="50px">                
 
                 <span class="d-none d-lg-block">
-                    {% if request.user.id != 5 and request.user.id != 7 %} 
-                    SMAINEX
-                    {% else %}
-                    AutenPRO
-                    {% endif %}
+                    SMAINEX                    
                 </span>
             </a>
             <i class="bi bi-list toggle-sidebar-btn"></i>
