@@ -122,10 +122,13 @@ def import_release(version, description='', action='published'):
         registered = False
         old_zip = None
         try:
+            existed_before_download = False
             if action == 'edited':
-                if not AtronUpdate.objects.filter(version_current=version).exists():
-                    log_update(f'{version}: edicao ignorada; versao nao cadastrada.')
-                    return
+                existed_before_download = AtronUpdate.objects.filter(version_current=version).exists()
+                if not existed_before_download:
+                    if not newer_than_registered(version):
+                        return
+                    log_update(f'{version}: edicao de versao nova; sera cadastrada com status=0.')
             elif not newer_than_registered(version):
                 return
             log_update(f'Baixando AgroLine.apk de {REPOSITORY}, release {version}, pela API GitHub.')
@@ -157,11 +160,15 @@ def import_release(version, description='', action='published'):
                     if action == 'edited':
                         item = AtronUpdate.objects.select_for_update().filter(version_current=version).order_by('-id').first()
                         if item is None:
-                            log_update(f'{version}: registro removido durante o download; edicao cancelada.')
-                            return
-                        old_zip = (folder / (item.apk + '.zip')).resolve()
-                        if old_zip.parent != folder.resolve():
-                            raise ValueError('Caminho do ZIP anterior fora da pasta de updates.')
+                            if existed_before_download:
+                                log_update(f'{version}: registro removido durante o download; edicao cancelada.')
+                                return
+                            if not newer_than_registered(version):
+                                return
+                        else:
+                            old_zip = (folder / (item.apk + '.zip')).resolve()
+                            if old_zip.parent != folder.resolve():
+                                raise ValueError('Caminho do ZIP anterior fora da pasta de updates.')
                     elif not newer_than_registered(version):
                         return
                     name = f'AgroLine-{version}-{uuid.uuid4().hex}'
