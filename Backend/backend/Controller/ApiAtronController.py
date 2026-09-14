@@ -391,12 +391,16 @@ def version_to_number(version_str):
 def newRealeseGitHub(request):
     
     from backend.Controller.GitHubReleaseUpdate import REPOSITORY, log_update, parse_version, start_release
+    delivery = request.headers.get('X-GitHub-Delivery', 'unknown')
+    event = request.headers.get('X-GitHub-Event')
+    log_update(f'Webhook recebido: delivery={delivery!r}, event={event!r}')
     from backend.Controller.ReleaseDescription import release_description
     
     try:
         dados = json.loads(request.body.decode('utf-8'))
         event = request.headers.get('X-GitHub-Event')
         if event == 'ping':
+            log_update(f'Webhook {delivery!r}: ping confirmado.')
             return JsonResponse({'status': 1, 'description': 'Ping recebido'})
         if not isinstance(dados, dict):
             raise ValueError('Esperado um objeto JSON')
@@ -407,10 +411,22 @@ def newRealeseGitHub(request):
         if not isinstance(release, dict) or not isinstance(repository, dict):
             raise ValueError('Release ou repository inválido')
         
-        if (event != 'release' or dados.get('action') not in ('published', 'edited', 'released')
-                or repository.get('full_name') != REPOSITORY
-                or release.get('draft') or release.get('prerelease')):
-            return JsonResponse({'status': 1, 'description': 'Evento ignorado'})
+        log_update(f'Webhook {delivery!r}: action={dados.get("action")!r}, repo={repository.get("full_name")!r}, tag={release.get("tag_name")!r}')
+        reasons = []
+        if event != 'release':
+            reasons.append('Evento diferente de release')
+        if dados.get('action') not in ('published', 'edited', 'released'):
+            reasons.append('Acao nao processada')
+        if repository.get('full_name') != REPOSITORY:
+            reasons.append('Repositorio diferente do configurado')
+        if release.get('draft'):
+            reasons.append('Release em rascunho')
+        if release.get('prerelease'):
+            reasons.append('Pre-release')
+        if reasons:
+            reason = '; '.join(reasons)
+            log_update(f'Webhook {delivery!r} ignorado: {reason}. Repo configurado={REPOSITORY!r}')
+            return JsonResponse({'status': 1, 'description': 'Evento ignorado', 'reason': reason})
         
         version = release.get('tag_name')
         
@@ -426,9 +442,12 @@ def newRealeseGitHub(request):
         description = release_description(description)
 
         if not start_release(version, description, dados.get('action')):
+            log_update(f'Webhook {delivery!r}: limite de threads atingido.')
             return JsonResponse({'status': 0, 'description': 'Importações ocupadas; tente novamente'}, status=503)
         
+        log_update(f'Webhook {delivery!r}: thread iniciada para {version}.')
         return JsonResponse({'status': 1, 'description': 'Processamento iniciado', 'version': version}, status=202)
     
     except (ValueError, UnicodeDecodeError) as exc:
+        log_update(f'Webhook {delivery!r}: requisicao invalida: {exc}')
         return JsonResponse({'status': 0, 'description': str(exc)}, status=400)
