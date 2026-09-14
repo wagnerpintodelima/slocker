@@ -63,12 +63,13 @@ def import_release(version, description='', action='published'):
         close_old_connections()
         final_zip = None
         registered = False
+        old_zip = None
         try:
             if action == 'edited':
-                count = AtronUpdate.objects.filter(version_current=version).update(description=description)
-                log_update(f'{version}: descricao atualizada em {count} registro(s).')
-                return
-            if not newer_than_registered(version):
+                if not AtronUpdate.objects.filter(version_current=version).exists():
+                    log_update(f'{version}: edicao ignorada; versao nao cadastrada.')
+                    return
+            elif not newer_than_registered(version):
                 return
             url = f'https://github.com/{REPOSITORY}/releases/download/{version}/AgroLine.apk'
             log_update(f'Baixando {url}')
@@ -96,25 +97,57 @@ def import_release(version, description='', action='published'):
                     if connection.vendor == 'postgresql':
                         with connection.cursor() as cursor:
                             cursor.execute('SELECT pg_advisory_xact_lock(%s)', [714038201])
-                    if not newer_than_registered(version):
+                    item = None
+                    if action == 'edited':
+                        item = AtronUpdate.objects.select_for_update().filter(version_current=version).order_by('-id').first()
+                        if item is None:
+                            log_update(f'{version}: registro removido durante o download; edicao cancelada.')
+                            return
+                        old_zip = (folder / (item.apk + '.zip')).resolve()
+                        if old_zip.parent != folder.resolve():
+                            raise ValueError('Caminho do ZIP anterior fora da pasta de updates.')
+                    elif not newer_than_registered(version):
                         return
                     name = f'AgroLine-{version}-{uuid.uuid4().hex}'
                     final_zip = folder / (name + '.zip')
                     shutil.move(str(packaged), str(final_zip))
                     now = timezone.now()
                     actor = int(os.getenv('AGROLINE_GITHUB_USER_ID', '0'))
-                    AtronUpdate.objects.create(
-                        version_current=version, description=description,
-                        apk=name, level=0, status=0, created_at=now, updated_at=now,
-                        created_by=actor, updated_by=actor,
-                    )
+                    if item is not None:
+                        item.description = description
+                        item.apk = name
+                        item.updated_at = now
+                        item.updated_by = actor
+                        item.save(update_fields=['description', 'apk', 'updated_at', 'updated_by'])
+                    else:
+                        AtronUpdate.objects.create(
+                            version_current=version, description=description,
+                            apk=name, level=0, status=0, created_at=now, updated_at=now,
+                            created_by=actor, updated_by=actor,
+                        )
                 registered = True
-                log_update(f'{version} cadastrada com status=0. ZIP: {final_zip.name}')
+                if old_zip is not None:
+                    try:
+                        if not AtronUpdate.objects.filter(apk=old_zip.stem).exists():
+                            try:
+                                old_zip.unlink()
+                            except FileNotFoundError:
+                                pass
+                        else:
+                            log_update('ZIP anterior ainda usado por outro registro; arquivo preservado.')
+                    except Exception as exc:
+                        log_update(f'{version}: novo ZIP salvo, mas falhou a limpeza do anterior: {exc}')
+                    log_update(f'{version}: APK baixado novamente, ZIP e descricao atualizados. Status mantido.')
+                else:
+                    log_update(f'{version} cadastrada com status=0. ZIP: {final_zip.name}')
         except Exception as exc:
             log_update(f'Falha ao importar {version}: {exc}')
         finally:
             if final_zip is not None and not registered:
-                final_zip.unlink(missing_ok=True)
+                try:
+                    final_zip.unlink()
+                except FileNotFoundError:
+                    pass
             close_old_connections()
 
 
