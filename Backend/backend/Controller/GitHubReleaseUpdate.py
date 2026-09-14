@@ -67,10 +67,28 @@ def github_apk_response(version):
     api = 'https://api.github.com/repos/' + REPOSITORY
     with requests.get(api + '/releases/tags/' + quote(version, safe=''),
                       headers=headers, timeout=(15, 60), allow_redirects=False) as release:
-        if release.status_code != 200:
+        if release.status_code == 404:
+            release_data = None
+        elif release.status_code != 200:
             raise ValueError('Consulta da release: HTTP {}. Confira token, permissao Contents: Read e tag.'.format(release.status_code))
-        assets = [a for a in release.json().get('assets', [])
-                  if a.get('name') == 'AgroLine.apk' and a.get('state') == 'uploaded']
+        else:
+            release_data = release.json()
+    # Lookup by tag only returns published releases. Authenticated listing can
+    # include drafts visible to the token's account.
+    page = 1
+    while release_data is None:
+        with requests.get(api + '/releases', headers=headers,
+                          params={'per_page': 100, 'page': page},
+                          timeout=(15, 60), allow_redirects=False) as listing:
+            if listing.status_code != 200:
+                raise ValueError('Consulta de rascunhos: HTTP {}'.format(listing.status_code))
+            releases = listing.json()
+        release_data = next((r for r in releases if r.get('tag_name') == version), None)
+        if release_data is None and len(releases) < 100:
+            raise ValueError('Release nao encontrada; confira a tag e o acesso do token aos rascunhos.')
+        page += 1
+    assets = [a for a in release_data.get('assets', [])
+              if a.get('name') == 'AgroLine.apk' and a.get('state') == 'uploaded']
     if len(assets) != 1:
         raise ValueError('A release precisa conter um asset AgroLine.apk pronto para download.')
     asset_url = api + '/releases/assets/' + str(int(assets[0]['id']))

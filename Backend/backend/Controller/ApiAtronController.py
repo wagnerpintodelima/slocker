@@ -419,8 +419,6 @@ def newRealeseGitHub(request):
             reasons.append('Acao nao processada')
         if repository.get('full_name') != REPOSITORY:
             reasons.append('Repositorio diferente do configurado')
-        if release.get('draft'):
-            reasons.append('Release em rascunho')
         if release.get('prerelease'):
             reasons.append('Pre-release')
         if reasons:
