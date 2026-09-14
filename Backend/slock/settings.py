@@ -1,4 +1,9 @@
 import os
+AGROLINE_GITHUB_TOKEN = os.getenv('AGROLINE_GITHUB_TOKEN', '')
+try:
+    from .settings_private import AGROLINE_GITHUB_TOKEN
+except ImportError:
+    pass
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

@@ -8,6 +8,7 @@ import tempfile
 import threading
 import uuid
 import zipfile
+from urllib.parse import quote, urlsplit
 
 import requests
 from django.conf import settings
@@ -53,6 +54,44 @@ def newer_than_registered(version):
     return True
 
 
+def github_apk_response(version):
+    token = getattr(settings, 'AGROLINE_GITHUB_TOKEN', '').strip()
+    if not token:
+        raise ValueError('Configure AGROLINE_GITHUB_TOKEN no settings.py.')
+    if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', REPOSITORY):
+        raise ValueError('Repositorio GitHub invalido.')
+    headers = {
+        'Authorization': 'Bearer ' + token,
+        'Accept': 'application/vnd.github+json',
+    }
+    api = 'https://api.github.com/repos/' + REPOSITORY
+    with requests.get(api + '/releases/tags/' + quote(version, safe=''),
+                      headers=headers, timeout=(15, 60), allow_redirects=False) as release:
+        if release.status_code != 200:
+            raise ValueError('Consulta da release: HTTP {}. Confira token, permissao Contents: Read e tag.'.format(release.status_code))
+        assets = [a for a in release.json().get('assets', [])
+                  if a.get('name') == 'AgroLine.apk' and a.get('state') == 'uploaded']
+    if len(assets) != 1:
+        raise ValueError('A release precisa conter um asset AgroLine.apk pronto para download.')
+    asset_url = api + '/releases/assets/' + str(int(assets[0]['id']))
+    headers['Accept'] = 'application/octet-stream'
+    response = requests.get(asset_url, headers=headers, stream=True,
+                            timeout=(15, 120), allow_redirects=False)
+    if response.status_code in (301, 302, 303, 307, 308):
+        location = response.headers.get('Location', '')
+        response.close()
+        parsed = urlsplit(location)
+        if parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password:
+            raise ValueError('Redirecionamento de download invalido.')
+        # The signed asset URL authenticates itself. Never forward the PAT to storage.
+        response = requests.get(location, stream=True, timeout=(15, 120))
+    if response.status_code != 200:
+        status = response.status_code
+        response.close()
+        raise ValueError('Download do APK: HTTP {}'.format(status))
+    return response
+
+
 def import_release(version, description='', action='published'):
     if parse_version(version) is None:
         log_update(f'Versão inválida: {version!r}. Esperado vX.Y.Z.')
@@ -71,13 +110,12 @@ def import_release(version, description='', action='published'):
                     return
             elif not newer_than_registered(version):
                 return
-            url = f'https://github.com/{REPOSITORY}/releases/download/{version}/AgroLine.apk'
-            log_update(f'Baixando {url}')
+            log_update(f'Baixando AgroLine.apk de {REPOSITORY}, release {version}, pela API GitHub.')
             folder = Path(settings.MEDIA_ROOT) / 'backend/upload/atron/update/apk'
             folder.mkdir(parents=True, exist_ok=True)
             with tempfile.TemporaryDirectory(prefix='github-', dir=folder) as work:
                 apk = Path(work) / 'AgroLine.apk'
-                with requests.get(url, stream=True, timeout=(15, 120)) as response:
+                with github_apk_response(version) as response:
                     response.raise_for_status()
                     size = 0
                     with apk.open('wb') as output:
